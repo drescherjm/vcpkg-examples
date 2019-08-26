@@ -1,0 +1,13 @@
+set(CMAKE_TOOLCHAIN_FILE "X:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Path for vcpkg.cmake")
+
+if(CMAKE_TOOLCHAIN_FILE)
+    include(${CMAKE_TOOLCHAIN_FILE})
+endif(CMAKE_TOOLCHAIN_FILE)
+
+unset(BOOST_ROOT)
+
+SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+FOREACH(subdir ${SUBDIRS})
+    ADD_SUBDIRECTORY(${subdir})
+ENDFOREACH()
