@@ -1,0 +1,21 @@
+macro( setup_naming_convention Name )
+
+if (NOT "${PROJECT_COMPILER_VERSION}" STREQUAL "")
+
+	if (NOT "${${Name}_VERSION_STRING}" STREQUAL "")
+		set(ARCH_SUFFIX)
+		if (NOT "${PROJECT_ARCH}" STREQUAL "")
+			set(ARCH_SUFFIX "-${PROJECT_ARCH}")
+		endif (NOT "${PROJECT_ARCH}" STREQUAL "")
+		SET(CMAKE_DEBUG_POSTFIX "-${${Name}_VERSION_STRING}-d-${PROJECT_COMPILER_VERSION}${ARCH_SUFFIX}")
+		SET(CMAKE_RELEASE_POSTFIX "-${${Name}_VERSION_STRING}-r-${PROJECT_COMPILER_VERSION}${ARCH_SUFFIX}")
+		SET(CMAKE_RELWITHDEBINFO_POSTFIX "-${${Name}_VERSION_STRING}-rd-${PROJECT_COMPILER_VERSION}${ARCH_SUFFIX}")
+		SET(CMAKE_MINSIZEREL_POSTFIX "-${${Name}_VERSION_STRING}-rms-${PROJECT_COMPILER_VERSION}${ARCH_SUFFIX}")
+	else(NOT "${${Name}_VERSION_STRING}" STREQUAL "")
+		message( WARNING "${Name}_VERSION_STRING must be set before using the setup_naming_convention MACRO." )
+	endif(NOT "${${Name}_VERSION_STRING}" STREQUAL "")
+else(NOT "${PROJECT_COMPILER_VERSION}" STREQUAL "")
+	message( WARNING "PROJECT_COMPILER_VERSION must be set before using the setup_naming_convention MACRO." )
+endif (NOT "${PROJECT_COMPILER_VERSION}" STREQUAL "")
+
+endmacro( setup_naming_convention )
