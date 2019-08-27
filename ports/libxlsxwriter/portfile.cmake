@@ -10,6 +10,7 @@ vcpkg_from_github(
         0001-fix-build-error.patch
         0002-fix-uwp-build.patch
         0003-fix-include-file.patch
+		0004-fix-zlib.patch
 )
 
 if (VCPKG_CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
