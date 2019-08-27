@@ -10,6 +10,9 @@ int main(int argc, char *argv[])
 	std::cout << s << std::endl;
 
 	std::time_t t = std::time(nullptr);
+
+	// The following line is commented out because it currently causes several compiler errors in Visual 
+	// Studio 2019
 	//fmt::print("The date is {:%Y-%m-%d}.", *std::localtime(&t));
 
 	fmt::print("Hello, {}!\n", "world");  // Python-like format string syntax
