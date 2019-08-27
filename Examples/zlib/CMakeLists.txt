@@ -1,7 +1,10 @@
-myproject(zlib_example_0)
 
-find_package(ZLIB REQUIRED)
-add_executable(${LOCAL_PROJECT_NAME} src/vcpkg_zlib_example_0.cxx)
-target_link_libraries(${LOCAL_PROJECT_NAME} ZLIB::ZLIB)
+option( BUILD_ZLIB_EXAMPLES 		"Build the fmt examples." ON)
 
-set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER zlib)
+if(BUILD_ZLIB_EXAMPLES)
+	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+	FOREACH(subdir ${SUBDIRS})
+		ADD_SUBDIRECTORY(${subdir})
+	ENDFOREACH()
+endif()
