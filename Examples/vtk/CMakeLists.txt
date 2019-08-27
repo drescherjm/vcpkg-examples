@@ -1,7 +1,7 @@
 
-option( BUILD_ZLIB_EXAMPLES 		"Build the zlib examples." ON)
+option( BUILD_VTK_EXAMPLES 		"Build the vtk examples." ON)
 
-if(BUILD_ZLIB_EXAMPLES)
+if(BUILD_VTK_EXAMPLES)
 	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
 
 	FOREACH(subdir ${SUBDIRS})
