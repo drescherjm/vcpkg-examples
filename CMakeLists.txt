@@ -37,4 +37,7 @@ include(${PROJECT_SOURCE_DIR}/CMake/Scripts/HelperMacros.cmake)
 
 ###############################################################################
 
+#Use solution folders.
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 add_subdirectory(Examples)

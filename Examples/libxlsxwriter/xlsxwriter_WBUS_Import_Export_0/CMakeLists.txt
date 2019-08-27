@@ -5,8 +5,6 @@ find_package(libxlsxwriter REQUIRED)
 #include(${CMAKE_SOURCE_DIR}/Boost/CMake/SetupBoost.cmake)
 
 
-
-# Use the include path and library for Qt that is used by VTK.
 INCLUDE_DIRECTORIES(
   ${Boost_INCLUDE_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -33,3 +31,5 @@ target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${LOCAL_PROJECT_NAME} xlsxwriter)
+
+set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER xlsxwriter)
