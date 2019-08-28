@@ -1,0 +1,10 @@
+
+option( BUILD_VTK_IO_EXAMPLES 		"Build the vtk IO examples." ON)
+
+if(BUILD_VTK_IO_EXAMPLES)
+	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+	FOREACH(subdir ${SUBDIRS})
+		ADD_SUBDIRECTORY(${subdir})
+	ENDFOREACH()
+endif()
