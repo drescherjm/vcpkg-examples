@@ -54,16 +54,13 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
   }
 
   this->ui->view1->SetRenderWindow(riw[0]->GetRenderWindow());
-  riw[0]->SetupInteractor(
-      this->ui->view1->GetRenderWindow()->GetInteractor());
+  riw[0]->SetupInteractor( this->ui->view1->GetRenderWindow()->GetInteractor());
 
   this->ui->view2->SetRenderWindow(riw[1]->GetRenderWindow());
-  riw[1]->SetupInteractor(
-      this->ui->view2->GetRenderWindow()->GetInteractor());
+  riw[1]->SetupInteractor( this->ui->view2->GetRenderWindow()->GetInteractor());
 
   this->ui->view3->SetRenderWindow(riw[2]->GetRenderWindow());
-  riw[2]->SetupInteractor(
-      this->ui->view3->GetRenderWindow()->GetInteractor());
+  riw[2]->SetupInteractor( this->ui->view3->GetRenderWindow()->GetInteractor());
 
   for (int i = 0; i < 3; i++)
   {
@@ -105,6 +102,8 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
     color[0] /= 4.0;
     color[1] /= 4.0;
     color[2] /= 4.0;
+	// This sets the background color on the 3 slice views to match the color
+	// set on the 4th 3D Image plane widget.
     riw[i]->GetRenderer()->SetBackground( color );
 
     planeWidget[i]->SetTexturePlaneProperty(ipwProp);

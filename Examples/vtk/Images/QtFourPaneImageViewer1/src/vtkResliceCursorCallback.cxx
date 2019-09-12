@@ -27,8 +27,7 @@ void vtkResliceCursorCallback::Execute(vtkObject* caller, unsigned long ev, void
 		return;
 	}
 
-	vtkImagePlaneWidget* ipw =
-		dynamic_cast<vtkImagePlaneWidget*>(caller);
+	vtkImagePlaneWidget* ipw = dynamic_cast<vtkImagePlaneWidget*>(caller);
 	if (ipw)
 	{
 		double* wl = static_cast<double*>(callData);
@@ -50,8 +49,7 @@ void vtkResliceCursorCallback::Execute(vtkObject* caller, unsigned long ev, void
 		}
 	}
 
-	vtkResliceCursorWidget* rcw = dynamic_cast<
-		vtkResliceCursorWidget*>(caller);
+	vtkResliceCursorWidget* rcw = dynamic_cast<vtkResliceCursorWidget*>(caller);
 	if (rcw)
 	{
 		vtkResliceCursorLineRepresentation* rep = dynamic_cast<
