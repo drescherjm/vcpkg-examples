@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>851</width>
-    <height>583</height>
+    <width>928</width>
+    <height>734</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,166 +24,166 @@
    </size>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="gridLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>30</y>
-      <width>591</width>
-      <height>531</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="gridLayout_2">
-     <item row="1" column="0">
-      <widget class="QVTKOpenGLWidget" name="view2" native="true"/>
-     </item>
-     <item row="0" column="1">
-      <widget class="QVTKOpenGLWidget" name="view4" native="true"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="QVTKOpenGLWidget" name="view3" native="true"/>
-     </item>
-     <item row="0" column="0">
-      <widget class="QVTKOpenGLWidget" name="view1" native="true"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QFrame" name="frame">
-    <property name="geometry">
-     <rect>
-      <x>629</x>
-      <y>39</y>
-      <width>201</width>
-      <height>521</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <widget class="QCheckBox" name="resliceModeCheckBox">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>20</y>
-       <width>141</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Oblique Reslice</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="thickModeCheckBox">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>80</y>
-       <width>101</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Thick Slab</string>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="blendModeGroupBox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>181</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Blend mode</string>
-     </property>
-     <widget class="QRadioButton" name="radioButton_Min">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>161</width>
-        <height>17</height>
-       </rect>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <widget class="QVTKOpenGLWidget" name="view2" native="true"/>
+      </item>
+      <item row="0" column="1">
+       <widget class="QVTKOpenGLWidget" name="view4" native="true"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QVTKOpenGLWidget" name="view3" native="true"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QVTKOpenGLWidget" name="view1" native="true"/>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="1">
+     <widget class="QFrame" name="frame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="text">
-       <string>Min Intensity Blend</string>
+      <property name="maximumSize">
+       <size>
+        <width>175</width>
+        <height>16777215</height>
+       </size>
       </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QCheckBox" name="resliceModeCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>20</y>
+         <width>141</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Oblique Reslice</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="thickModeCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>80</y>
+         <width>101</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Thick Slab</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="blendModeGroupBox">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>120</y>
+         <width>181</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Blend mode</string>
+       </property>
+       <widget class="QRadioButton" name="radioButton_Min">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>161</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Min Intensity Blend</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="radioButton_Max">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>40</y>
+          <width>161</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Max Intensity Blend</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="radioButton_Mean">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>111</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Mean Blend</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QPushButton" name="resetButton">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>220</y>
+         <width>51</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Reset</string>
+       </property>
+      </widget>
+      <widget class="QFrame" name="frame_2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>250</y>
+         <width>191</width>
+         <height>211</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QPushButton" name="AddDistance1Button">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>131</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Add Distance On View 1</string>
+        </property>
+       </widget>
+      </widget>
      </widget>
-     <widget class="QRadioButton" name="radioButton_Max">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>161</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Max Intensity Blend</string>
-      </property>
-     </widget>
-     <widget class="QRadioButton" name="radioButton_Mean">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>111</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Mean Blend</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QPushButton" name="resetButton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>220</y>
-       <width>51</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Reset</string>
-     </property>
-    </widget>
-    <widget class="QFrame" name="frame_2">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>250</y>
-       <width>191</width>
-       <height>211</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <widget class="QPushButton" name="AddDistance1Button">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>131</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Add Distance On View 1</string>
-      </property>
-     </widget>
-    </widget>
-   </widget>
+    </item>
+   </layout>
   </widget>
   <action name="actionOpenFile">
    <property name="enabled">
@@ -200,8 +200,7 @@
   <action name="actionExit">
    <property name="icon">
     <iconset>
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Exit</string>

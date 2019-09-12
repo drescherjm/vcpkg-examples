@@ -15,6 +15,8 @@ if (NOT VTK_FOUND)
   return ()
 endif ()
 
+include(${VTK_USE_FILE})
+
 find_package(Qt5 COMPONENTS Widgets)
 if (NOT TARGET Qt5::Widgets)
   message("Skipping example: ${Qt5_NOT_FOUND_MESSAGE}")
@@ -45,6 +47,7 @@ target_link_libraries(${LOCAL_PROJECT_NAME}
   PRIVATE
     ${VTK_LIBRARIES}
     Qt5::Widgets)
+	
 
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE Include)
 set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER vtk/Images)
