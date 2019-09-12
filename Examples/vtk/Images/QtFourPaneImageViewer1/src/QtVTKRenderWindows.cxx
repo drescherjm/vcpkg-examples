@@ -46,7 +46,6 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
   int imageDims[3];
   reader->GetOutput()->GetDimensions(imageDims);
 
-
   for (int i = 0; i < 3; i++)
   {
     riw[i] = vtkSmartPointer< vtkResliceImageViewer >::New();
@@ -74,23 +73,19 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
           riw[i]->GetResliceCursorWidget()->GetRepresentation());
     riw[i]->SetResliceCursor(riw[0]->GetResliceCursor());
 
-    rep->GetResliceCursorActor()->
-      GetCursorAlgorithm()->SetReslicePlaneNormal(i);
+    rep->GetResliceCursorActor()-> GetCursorAlgorithm()->SetReslicePlaneNormal(i);
 
     riw[i]->SetInputData(reader->GetOutput());
-    riw[i]->SetSliceOrientation(i);
+    riw[i]->SetSliceOrientation(i); // enum { SLICE_ORIENTATION_YZ = 0, SLICE_ORIENTATION_XZ = 1, SLICE_ORIENTATION_XY = 2 }
     riw[i]->SetResliceModeToAxisAligned();
   }
 
-  vtkSmartPointer<vtkCellPicker> picker =
-    vtkSmartPointer<vtkCellPicker>::New();
+  vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
   picker->SetTolerance(0.005);
 
-  vtkSmartPointer<vtkProperty> ipwProp =
-    vtkSmartPointer<vtkProperty>::New();
+  vtkSmartPointer<vtkProperty> ipwProp =  vtkSmartPointer<vtkProperty>::New();
 
-  vtkSmartPointer< vtkRenderer > ren =
-    vtkSmartPointer< vtkRenderer >::New();
+  vtkSmartPointer< vtkRenderer > ren = vtkSmartPointer< vtkRenderer >::New();
 
   vtkNew<vtkGenericOpenGLRenderWindow> renderWindow;
   this->ui->view4->SetRenderWindow(renderWindow);
@@ -125,8 +120,7 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
     planeWidget[i]->InteractionOn();
   }
 
-  vtkSmartPointer<vtkResliceCursorCallback> cbk =
-    vtkSmartPointer<vtkResliceCursorCallback>::New();
+  vtkSmartPointer<vtkResliceCursorCallback> cbk = vtkSmartPointer<vtkResliceCursorCallback>::New();
 
   for (int i = 0; i < 3; i++)
   {
@@ -281,10 +275,9 @@ void QtVTKRenderWindows::AddDistanceMeasurementToView(int i)
   this->DistanceWidget[i]->SetPriority(
     this->riw[i]->GetResliceCursorWidget()->GetPriority() + 0.01);
 
-  vtkSmartPointer< vtkPointHandleRepresentation2D > handleRep =
-    vtkSmartPointer< vtkPointHandleRepresentation2D >::New();
-  vtkSmartPointer< vtkDistanceRepresentation2D > distanceRep =
-    vtkSmartPointer< vtkDistanceRepresentation2D >::New();
+  vtkSmartPointer< vtkPointHandleRepresentation2D > handleRep = vtkSmartPointer< vtkPointHandleRepresentation2D >::New();
+  vtkSmartPointer< vtkDistanceRepresentation2D > distanceRep =  vtkSmartPointer< vtkDistanceRepresentation2D >::New();
+
   distanceRep->SetHandleRepresentation(handleRep);
   this->DistanceWidget[i]->SetRepresentation(distanceRep);
   distanceRep->InstantiateHandleRepresentation();
