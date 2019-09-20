@@ -1,0 +1,5 @@
+Source: qxt
+Version: 7.0.0-git
+Build-Depends: qt5-base, qt5-tools
+Homepage: https://bitbucket.org/libqxt/libqxt/wiki/Home
+Description: LibQxt is an extension library for Qt providing a suite of cross-platform utility classes to add functionality not readily available in Qt.
