@@ -7,8 +7,6 @@ if(BUILDTREES_PATH_LENGTH GREATER 37 AND CMAKE_HOST_WIN32)
     )
 endif()
 
-MESSAGE( STATUS "${VCPKG_QT_HOST_TOOLS_ROOT_DIR}=" ${VCPKG_QT_HOST_TOOLS_ROOT_DIR})
-
 vcpkg_from_bitbucket(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO libqxt/libqxt
@@ -29,16 +27,14 @@ vcpkg_configure_qmake(
     OPTIONS
         CONFIG+=${VCPKG_LIBRARY_LINKAGE}
 		QXT_MODULES=core
-		QXT_MODULES+=widgets
 		QXT_MODULES+=docs
-		QXT_MODULES+=sql
-		QXT_MODULES+=network
+		PREFIX=${CURRENT_BUILDTREES_DIR}
 )
 
 if (CMAKE_HOST_WIN32)
     vcpkg_build_qmake(
-        RELEASE_TARGETS sub-tools-3rdparty-qdoc3 sub-src-core sub-src-widgets sub-src-sql
-        DEBUG_TARGETS sub-tools-3rdparty-qdoc3 sub-src-core sub-src-widgets sub-src-sql
+        RELEASE_TARGETS sub-src-core install
+        DEBUG_TARGETS sub-src-core install
     )
 elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
     vcpkg_build_qmake(
@@ -46,3 +42,52 @@ elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
         DEBUG_TARGETS sub-tools-3rdparty-qdoc3 sub-src-core sub-src-widgets sub-src-sql
     )
 endif()
+
+# vcpkg_configure_qmake(
+    # SOURCE_PATH ${SOURCE_PATH}
+    # OPTIONS
+        # CONFIG+=${VCPKG_LIBRARY_LINKAGE}
+		# QXT_MODULES=widgets
+# )
+
+# if (CMAKE_HOST_WIN32)
+    # vcpkg_build_qmake(
+        # RELEASE_TARGETS sub-src-widgets
+        # DEBUG_TARGETS sub-src-widgets
+    # )
+# elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
+    # vcpkg_build_qmake(
+        # RELEASE_TARGETS sub-tools-3rdparty-qdoc3 sub-src-core sub-src-widgets sub-src-sql
+        # DEBUG_TARGETS sub-tools-3rdparty-qdoc3 sub-src-core sub-src-widgets sub-src-sql
+    # )
+# endif()
+
+#Set the correct install directory to packages
+foreach(MAKEFILE ${RELEASE_MAKEFILES} ${DEBUG_MAKEFILES})
+    message(STATUS MAKEFILE=${MAKEFILE})
+    vcpkg_replace_string(${MAKEFILE} "(INSTALL_ROOT)" "(INSTALL_ROOT)${PACKAGES_DIR_WITHOUT_DRIVE}")
+endforeach()
+
+#Install the header files
+file(GLOB HEADER_FILES ${SOURCE_PATH}/src/*.h)
+file(INSTALL ${HEADER_FILES} DESTINATION ${CURRENT_PACKAGES_DIR}/include/qxt)
+
+#Install the module files
+if (CMAKE_HOST_WIN32)
+    file(INSTALL ${RELEASE_DIR}/lib/QxtCore.lib DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+    file(INSTALL ${DEBUG_DIR}/lib/QxtCored.lib DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
+
+    if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+        file(INSTALL ${RELEASE_DIR}/lib/QxtCore.dll DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
+        file(INSTALL ${DEBUG_DIR}/lib/QxtCored.dll DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
+    endif()
+    vcpkg_copy_pdbs()
+elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
+#    file(INSTALL ${RELEASE_DIR}/lib/libqwt.a DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+#    file(INSTALL ${DEBUG_DIR}/lib/libqwt.a DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
+endif()
+
+
+# Handle copyright
+file(COPY ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/qwt)
+file(RENAME ${CURRENT_PACKAGES_DIR}/share/qxt/COPYING ${CURRENT_PACKAGES_DIR}/share/qxt/copyright)
