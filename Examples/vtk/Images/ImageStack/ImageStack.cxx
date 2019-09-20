@@ -27,7 +27,7 @@ int main(int, char *[])
 
   // Image 2
   vtkSmartPointer<vtkImageData> image2 = vtkSmartPointer<vtkImageData>::New();
-  CreateColorImage(image2, 4, 1);
+  CreateColorImage(image2, 2, 1);
 
   vtkSmartPointer<vtkImageSliceMapper> imageSliceMapper2 = vtkSmartPointer<vtkImageSliceMapper>::New();
   imageSliceMapper2->SetInputData(image2);
