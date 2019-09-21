@@ -1,5 +1,20 @@
 include(vcpkg_common_functions)
 
+set(QXT_VER_MAJOR 7)
+set(QXT_VER_MINOR 0)
+set(QXT_VER_PATCH 0-git)
+
+#########################################################################################
+
+macro( dump_all_variables )
+
+	get_cmake_property(_variableNames VARIABLES)
+	foreach (_variableName ${_variableNames})
+		message(STATUS "${_variableName}=${${_variableName}}")
+	endforeach()
+
+endmacro( dump_all_variables )
+
 string(LENGTH "${CURRENT_BUILDTREES_DIR}" BUILDTREES_PATH_LENGTH)
 if(BUILDTREES_PATH_LENGTH GREATER 37 AND CMAKE_HOST_WIN32)
     message(WARNING "${PORT}'s buildsystem uses very long paths and may fail on your system.\n"
@@ -21,6 +36,12 @@ set(DEBUG_DIR "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg")
 set(RELEASE_DIR "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel")
 
 set(ENV{QXT_MODULES} "core widgets")
+
+message(STATUS "QXT version: ${QXT_VER_MAJOR}.${QXT_VER_MINOR}.${QXT_VER_PATCH}")
+
+configure_file("${CMAKE_CURRENT_LIST_DIR}/qxtversion.h.cmake" "${CURRENT_PACKAGES_DIR}/include/qxt/qxtversion.h")
+
+#dump_all_variables()
 
 vcpkg_configure_qmake(
     SOURCE_PATH ${SOURCE_PATH}
@@ -56,11 +77,34 @@ endif()
 #Install the header files
 #file(GLOB HEADER_FILES ${RELEASE_DIR}/include/*.h)
 file(INSTALL ${RELEASE_DIR}/include DESTINATION ${CURRENT_PACKAGES_DIR}/include/qxt)
+file(INSTALL ${SOURCE_PATH}/include DESTINATION ${CURRENT_PACKAGES_DIR}/include/qxt)
 
 #Install the module files
 if (CMAKE_HOST_WIN32)
-    file(INSTALL ${RELEASE_DIR}/lib/QxtCore.lib ${RELEASE_DIR}/lib/QxtCore.exp DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
-    file(INSTALL ${DEBUG_DIR}/lib/QxtCored.lib ${DEBUG_DIR}/lib/QxtCored.exp DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
+
+	file(GLOB QXT_LIBRARY_FILES_RELEASE
+		"${RELEASE_DIR}/lib/*.lib"
+		"${RELEASE_DIR}/lib/*.exp"
+	)
+
+	file(INSTALL ${QXT_LIBRARY_FILES_RELEASE} DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+	
+	file(GLOB QXT_LIBRARY_FILES_DEBUG
+		"${DEBUG_DIR}/lib/*.lib"
+		"${DEBUG_DIR}/lib/*.exp"
+	)
+
+	file(INSTALL ${QXT_LIBRARY_FILES_DEBUG} DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
+	
+
+	# install(DIRECTORY "${RELEASE_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/lib" FILES_MATCHING PATTERN "*.lib" )
+	# install(DIRECTORY "${RELEASE_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/lib" FILES_MATCHING PATTERN "*.exp" )
+	
+	# install(DIRECTORY "${DEBUG_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/lib" FILES_MATCHING PATTERN "*.lib" )
+	# install(DIRECTORY "${DEBUG_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/lib" FILES_MATCHING PATTERN "*.exp" )
+
+    #file(INSTALL ${RELEASE_DIR}/lib/QxtCore.lib ${RELEASE_DIR}/lib/QxtCore.exp DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+    #file(INSTALL ${DEBUG_DIR}/lib/QxtCored.lib ${DEBUG_DIR}/lib/QxtCored.exp DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
 
     if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
         file(INSTALL ${RELEASE_DIR}/bin  DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
