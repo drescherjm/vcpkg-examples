@@ -52,10 +52,12 @@ vcpkg_configure_qmake(
 		QXT_MODULES+=docs
 )
 
-file(APPEND "${DEBUG_DIR}/.qmake.cache" "INCLUDEPATH+=${SOURCE_PATH}/include/QxtCore \nQXT_BUILD_TREE=${DEBUG_DIR} \nQXT_INSTALL_BINS=${DEBUG_DIR}/bin \nQXT_INSTALL_HEADERS=${DEBUG_DIR}/include \n")
+file(APPEND "${DEBUG_DIR}/.qmake.cache" "INCLUDEPATH+=${SOURCE_PATH}/include/QxtCore\nINCLUDEPATH+=${SOURCE_PATH}/src/core\n")
+file(APPEND "${DEBUG_DIR}/.qmake.cache" "QXT_BUILD_TREE=${DEBUG_DIR} \nQXT_INSTALL_BINS=${DEBUG_DIR}/bin \nQXT_INSTALL_HEADERS=${DEBUG_DIR}/include \n")
 file(APPEND "${DEBUG_DIR}/.qmake.cache" "QXT_INSTALL_FEATURES=${DEBUG_DIR}/features\n")
 
-file(APPEND "${RELEASE_DIR}/.qmake.cache" "INCLUDEPATH+=${SOURCE_PATH}/include/QxtCore \nQXT_BUILD_TREE=${RELEASE_DIR} \nQXT_INSTALL_BINS=${RELEASE_DIR}/bin \nQXT_INSTALL_HEADERS=${RELEASE_DIR}/include \n")
+file(APPEND "${RELEASE_DIR}/.qmake.cache" "INCLUDEPATH+=${SOURCE_PATH}/include/QxtCore\nINCLUDEPATH+=${SOURCE_PATH}/src/core\n")
+file(APPEND "${RELEASE_DIR}/.qmake.cache" "QXT_BUILD_TREE=${RELEASE_DIR} \nQXT_INSTALL_BINS=${RELEASE_DIR}/bin \nQXT_INSTALL_HEADERS=${RELEASE_DIR}/include \n")
 file(APPEND "${RELEASE_DIR}/.qmake.cache" "QXT_INSTALL_FEATURES=${RELEASE_DIR}/features\n")
 
 set(ENV{QXT_BUILD_TREE} ${CURRENT_BUILDTREES_DIR})
@@ -107,8 +109,8 @@ if (CMAKE_HOST_WIN32)
     #file(INSTALL ${DEBUG_DIR}/lib/QxtCored.lib ${DEBUG_DIR}/lib/QxtCored.exp DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
 
     if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
-        file(INSTALL ${RELEASE_DIR}/bin  DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
-        file(INSTALL ${DEBUG_DIR}/bin DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
+        file(INSTALL ${RELEASE_DIR}/bin  DESTINATION ${CURRENT_PACKAGES_DIR})
+        file(INSTALL ${DEBUG_DIR}/bin DESTINATION ${CURRENT_PACKAGES_DIR}/debug)
     endif()
     vcpkg_copy_pdbs()
 elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
