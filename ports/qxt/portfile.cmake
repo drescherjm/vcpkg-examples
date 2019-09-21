@@ -27,13 +27,14 @@ vcpkg_configure_qmake(
     OPTIONS
         CONFIG+=${VCPKG_LIBRARY_LINKAGE}
 		QXT_MODULES=core
+		QXT_MODULES+=widgets
 		QXT_MODULES+=docs
 )
 
-file(APPEND "${DEBUG_DIR}/.qmake.cache" "QXT_BUILD_TREE=${DEBUG_DIR} \nQXT_INSTALL_BINS=${DEBUG_DIR}/bin \nQXT_INSTALL_HEADERS=${DEBUG_DIR}/include \n")
+file(APPEND "${DEBUG_DIR}/.qmake.cache" "INCLUDEPATH+=${SOURCE_PATH}/include/QxtCore \nQXT_BUILD_TREE=${DEBUG_DIR} \nQXT_INSTALL_BINS=${DEBUG_DIR}/bin \nQXT_INSTALL_HEADERS=${DEBUG_DIR}/include \n")
 file(APPEND "${DEBUG_DIR}/.qmake.cache" "QXT_INSTALL_FEATURES=${DEBUG_DIR}/features\n")
 
-file(APPEND "${RELEASE_DIR}/.qmake.cache" "QXT_BUILD_TREE=${RELEASE_DIR} \nQXT_INSTALL_BINS=${RELEASE_DIR}/bin \nQXT_INSTALL_HEADERS=${RELEASE_DIR}/include \n")
+file(APPEND "${RELEASE_DIR}/.qmake.cache" "INCLUDEPATH+=${SOURCE_PATH}/include/QxtCore \nQXT_BUILD_TREE=${RELEASE_DIR} \nQXT_INSTALL_BINS=${RELEASE_DIR}/bin \nQXT_INSTALL_HEADERS=${RELEASE_DIR}/include \n")
 file(APPEND "${RELEASE_DIR}/.qmake.cache" "QXT_INSTALL_FEATURES=${RELEASE_DIR}/features\n")
 
 set(ENV{QXT_BUILD_TREE} ${CURRENT_BUILDTREES_DIR})
@@ -41,8 +42,8 @@ set(ENV{QXT_BUILD_TREE} ${CURRENT_BUILDTREES_DIR})
 
 if (CMAKE_HOST_WIN32)
     vcpkg_build_qmake(
-        RELEASE_TARGETS sub-src-core install
-        DEBUG_TARGETS sub-src-core install
+        RELEASE_TARGETS sub-src-core sub-src-widgets install
+        DEBUG_TARGETS sub-src-core sub-src-widgets install
     )
 elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
     vcpkg_build_qmake(
@@ -71,8 +72,5 @@ elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
 #    file(INSTALL ${DEBUG_DIR}/lib/libqwt.a DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
 endif()
 
-
-# Handle copyright
-#file(COPY ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/qwt)
 
 configure_file(${SOURCE_PATH}/COPYING ${CURRENT_PACKAGES_DIR}/share/qxt/copyright COPYONLY)
