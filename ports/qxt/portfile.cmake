@@ -28,8 +28,24 @@ vcpkg_configure_qmake(
         CONFIG+=${VCPKG_LIBRARY_LINKAGE}
 		QXT_MODULES=core
 		QXT_MODULES+=docs
-		PREFIX=${CURRENT_BUILDTREES_DIR}
 )
+
+file(APPEND "${DEBUG_DIR}/.qmake.cache" "QXT_BUILD_TREE=${DEBUG_DIR} \nQXT_INSTALL_BINS=${DEBUG_DIR}/bin \nQXT_INSTALL_HEADERS=${DEBUG_DIR}/include \n")
+file(APPEND "${DEBUG_DIR}/.qmake.cache" QXT_INSTALL_FEATURES=${DEBUG_DIR}/features\n")
+
+file(APPEND "${RELEASE_DIR}/.qmake.cache" "QXT_BUILD_TREE=${RELEASE_DIR} \nQXT_INSTALL_BINS=${RELEASE_DIR}/bin \nQXT_INSTALL_HEADERS=${RELEASE_DIR}/include \n")
+file(APPEND "${RELEASE_DIR}/.qmake.cache" QXT_INSTALL_FEATURES=${RELEASE_DIR}/features\n")
+
+set(ENV{QXT_BUILD_TREE} ${CURRENT_BUILDTREES_DIR})
+
+
+# file(GLOB_RECURSE RELEASE_MAKEFILES ${RELEASE_DIR}/*Makefile*)
+
+#Set the correct install directory to packages
+# foreach(MAKEFILE ${RELEASE_MAKEFILES} ${DEBUG_MAKEFILES})
+    # message(STATUS MAKEFILE=${MAKEFILE})
+    # vcpkg_replace_string(${MAKEFILE} "(INSTALL_ROOT)" "(INSTALL_ROOT)${PACKAGES_DIR_WITHOUT_DRIVE}")
+# endforeach()
 
 if (CMAKE_HOST_WIN32)
     vcpkg_build_qmake(
@@ -62,11 +78,13 @@ endif()
     # )
 # endif()
 
+# file(GLOB_RECURSE RELEASE_MAKEFILES ${RELEASE_DIR}/*Makefile*)
+
 #Set the correct install directory to packages
-foreach(MAKEFILE ${RELEASE_MAKEFILES} ${DEBUG_MAKEFILES})
-    message(STATUS MAKEFILE=${MAKEFILE})
-    vcpkg_replace_string(${MAKEFILE} "(INSTALL_ROOT)" "(INSTALL_ROOT)${PACKAGES_DIR_WITHOUT_DRIVE}")
-endforeach()
+# foreach(MAKEFILE ${RELEASE_MAKEFILES} ${DEBUG_MAKEFILES})
+    # message(STATUS MAKEFILE=${MAKEFILE})
+    # vcpkg_replace_string(${MAKEFILE} "(INSTALL_ROOT)" "(INSTALL_ROOT)${PACKAGES_DIR_WITHOUT_DRIVE}")
+# endforeach()
 
 #Install the header files
 file(GLOB HEADER_FILES ${SOURCE_PATH}/src/*.h)
@@ -74,12 +92,12 @@ file(INSTALL ${HEADER_FILES} DESTINATION ${CURRENT_PACKAGES_DIR}/include/qxt)
 
 #Install the module files
 if (CMAKE_HOST_WIN32)
-    file(INSTALL ${RELEASE_DIR}/lib/QxtCore.lib DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
-    file(INSTALL ${DEBUG_DIR}/lib/QxtCored.lib DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
+    file(INSTALL ${CURRENT_BUILDTREES_DIR}/lib/QxtCore.lib DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+    file(INSTALL ${CURRENT_BUILDTREES_DIR}/lib/QxtCored.lib DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
 
     if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
-        file(INSTALL ${RELEASE_DIR}/lib/QxtCore.dll DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
-        file(INSTALL ${DEBUG_DIR}/lib/QxtCored.dll DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
+        file(INSTALL ${CURRENT_BUILDTREES_DIR}/lib/QxtCore.dll DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
+        file(INSTALL ${CURRENT_BUILDTREES_DIR}/lib/QxtCored.dll DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
     endif()
     vcpkg_copy_pdbs()
 elseif (CMAKE_HOST_UNIX OR CMAKE_HOST_APPLE) # Build in UNIX
@@ -89,5 +107,6 @@ endif()
 
 
 # Handle copyright
-file(COPY ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/qwt)
-file(RENAME ${CURRENT_PACKAGES_DIR}/share/qxt/COPYING ${CURRENT_PACKAGES_DIR}/share/qxt/copyright)
+#file(COPY ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/qwt)
+
+configure_file(${SOURCE_PATH}/COPYING ${CURRENT_PACKAGES_DIR}/share/qxt/copyright COPYONLY)
