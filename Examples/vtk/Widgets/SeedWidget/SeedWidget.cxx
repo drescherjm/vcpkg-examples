@@ -38,7 +38,7 @@ int main(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   // Create the representation for the seed widget and for its handles
   auto handleRep =
     vtkSmartPointer<vtkPointHandleRepresentation2D>::New();
-  handleRep->GetProperty()->SetColor(1, 1, 0); // Make the handles yellow
+  handleRep->GetProperty()->SetColor(1, 0, 0); // Make the handles red
   auto widgetRep =
     vtkSmartPointer<vtkSeedRepresentation>::New();
   widgetRep->SetHandleRepresentation(handleRep);
