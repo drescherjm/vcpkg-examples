@@ -9,7 +9,8 @@ find_package(VTK
     vtkImagingGeneral
     vtkInteractionImage
     vtkInteractionStyle
-    vtkInteractionWidgets)
+    vtkInteractionWidgets
+	vtkImagingStatistics)
 if (NOT VTK_FOUND)
   message("Skipping example: ${VTK_NOT_FOUND_MESSAGE}")
   return ()

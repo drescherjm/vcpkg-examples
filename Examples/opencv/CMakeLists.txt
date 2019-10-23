@@ -1,0 +1,10 @@
+
+option( BUILD_OPENCV_EXAMPLES 		"Build the opencv examples." ON)
+
+if(BUILD_OPENCV_EXAMPLES)
+	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+	FOREACH(subdir ${SUBDIRS})
+		ADD_SUBDIRECTORY(${subdir})
+	ENDFOREACH()
+endif()

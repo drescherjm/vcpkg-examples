@@ -31,6 +31,15 @@
 #include "vtkResliceCursorPolyDataAlgorithm.h"
 #include "vtkResliceCursor.h"
 #include "vtkResliceImageViewerMeasurements.h"
+#include <vtkImageHistogramStatistics.h>
+
+
+#define READ_TIFF
+#define CALCULATE_IMAGE_STATISTICS
+
+#ifdef READ_TIFF
+#include <vtkTIFFReader.h>
+#endif //def READ_TIFF
 
 //----------------------------------------------------------------------------
 class vtkResliceCursorCallback : public vtkCommand
@@ -123,13 +132,25 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
   this->ui = new Ui_QtVTKRenderWindows;
   this->ui->setupUi(this);
 
-  vtkSmartPointer< vtkDICOMImageReader > reader =
-    vtkSmartPointer< vtkDICOMImageReader >::New();
+ 
+#ifndef READ_TIFF
+  vtkSmartPointer< vtkDICOMImageReader > reader =  vtkSmartPointer< vtkDICOMImageReader >::New();
   reader->SetDirectoryName(argv[1]);
+#else
+  vtkSmartPointer< vtkTIFFReader> reader = vtkSmartPointer<vtkTIFFReader>::New();
+  reader->SetFileName(argv[1]);
+#endif
+    
   reader->Update();
   int imageDims[3];
   reader->GetOutput()->GetDimensions(imageDims);
 
+#ifdef CALCULATE_IMAGE_STATISTICS
+  vtkSmartPointer < vtkImageHistogramStatistics > stats = vtkSmartPointer<vtkImageHistogramStatistics>::New();
+  stats->SetInputConnection(reader->GetOutputPort());
+  stats->Update();
+  stats->Print(std::cout);
+#endif
 
   for (int i = 0; i < 3; i++)
   {
