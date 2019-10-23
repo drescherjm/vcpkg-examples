@@ -19,88 +19,137 @@
 #include "itkImageFileReader.h"
 #include "itkConvolutionImageFilter.h"
 #include "itkImageRegionIterator.h"
+#include "itkImageFileWriter.h"
+#include "itkTIFFImageIO.h"
+#include <itkRescaleIntensityImageFilter.h>
 
 #ifdef ENABLE_QUICKVIEW
-#  include "QuickView.h"
+#include "QuickView.h"
 #endif
 
-using ImageType = itk::Image<float, 2>;
+//using InputImageType = itk::Image<unsigned short, 2>;
+using OutputImageType = itk::Image<float, 2>;
+
+using InputImageType = OutputImageType;
 
 static void
-CreateKernel(ImageType::Pointer kernel, unsigned int width);
+CreateKernel(InputImageType::Pointer kernel, unsigned int width);
 
-int
-main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
-  // Verify command line arguments
-  if (argc < 2)
-  {
-    std::cerr << "Usage: ";
-    std::cerr << argv[0] << "inputImageFile [width]" << std::endl;
-    return EXIT_FAILURE;
-  }
+	// Verify command line arguments
+	if (argc < 2)
+	{
+		std::cerr << "Usage: ";
+		std::cerr << argv[0] << "inputImageFile [width]" << std::endl;
+		return EXIT_FAILURE;
+	}
 
-  // Parse command line arguments
-  unsigned int width = 3;
-  if (argc > 2)
-  {
-    width = std::stoi(argv[2]);
-  }
+	// Parse command line arguments
+	unsigned int width = 3;
+	if (argc > 2)
+	{
+		width = std::stoi(argv[2]);
+	}
 
-  ImageType::Pointer kernel = ImageType::New();
-  CreateKernel(kernel, width);
+	InputImageType::Pointer kernel = InputImageType::New();
+	CreateKernel(kernel, width);
 
-  using ReaderType = itk::ImageFileReader<ImageType>;
-  using FilterType = itk::ConvolutionImageFilter<ImageType>;
+	using ReaderType = itk::ImageFileReader<InputImageType>;
+	using FilterType = itk::ConvolutionImageFilter<InputImageType, InputImageType, OutputImageType>;
 
-  // Create and setup a reader
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName(argv[1]);
+	// Create and setup a reader
+	ReaderType::Pointer reader = ReaderType::New();
+	reader->SetFileName(argv[1]);
 
-  // Convolve image with kernel.
-  FilterType::Pointer convolutionFilter = FilterType::New();
-  convolutionFilter->SetInput(reader->GetOutput());
+	using RescaleType = itk::RescaleIntensityImageFilter<InputImageType>;
+
+	RescaleType::Pointer rescaler = RescaleType::New();
+
+	rescaler->SetOutputMinimum(0);
+
+	rescaler->SetInput(reader->GetOutput());
+	rescaler->Update();
+	// Convolve image with kernel.
+	FilterType::Pointer convolutionFilter = FilterType::New();
+	convolutionFilter->NormalizeOn();
+	convolutionFilter->SetInput(reader->GetOutput());
 #if ITK_VERSION_MAJOR >= 4
-  convolutionFilter->SetKernelImage(kernel);
+	convolutionFilter->SetKernelImage(kernel);
 #else
-  convolutionFilter->SetImageKernelInput(kernel);
+	convolutionFilter->SetImageKernelInput(kernel);
 #endif
 #ifdef ENABLE_QUICKVIEW
-  QuickView viewer;
-  viewer.AddImage<ImageType>(reader->GetOutput(), true, itksys::SystemTools::GetFilenameName(argv[1]));
+	QuickView viewer;
+	viewer.AddImage<ImageType>(reader->GetOutput(), true, itksys::SystemTools::GetFilenameName(argv[1]));
 
-  std::stringstream desc;
-  desc << "ConvolutionFilter\n"
-       << "Kernel Witdh = " << width;
-  viewer.AddImage<ImageType>(convolutionFilter->GetOutput(), true, desc.str());
-  viewer.Visualize();
+	std::stringstream desc;
+	desc << "ConvolutionFilter\n"
+		<< "Kernel Witdh = " << width;
+	viewer.AddImage<ImageType>(convolutionFilter->GetOutput(), true, desc.str());
+	viewer.Visualize();
 #endif
-  return EXIT_SUCCESS;
+	//convolutionFilter->Update();
+
+	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
+
+	StatsType::Pointer stats = StatsType::New();
+
+	stats->SetInput(convolutionFilter->GetOutput());
+
+	stats->Update();
+
+	stats->Print(std::cout);
+
+	using WriterType = itk::ImageFileWriter<OutputImageType>;
+	using TIFFIOType = itk::TIFFImageIO;
+
+	TIFFIOType::Pointer tiffIO = TIFFIOType::New();
+	//   tiffIO->SetPixelType(itk::ImageIOBase::SCALAR);
+	//   tiffIO->SetNumberOfComponents(1);
+	//   tiffIO->SetCompressionToLZW();
+
+	WriterType::Pointer writer = WriterType::New();
+	writer->SetFileName("output.tiff");
+	writer->SetInput(convolutionFilter->GetOutput());
+	writer->SetImageIO(tiffIO);
+
+	try
+	{
+		writer->Update();
+	}
+	catch (itk::ExceptionObject& error)
+	{
+		std::cerr << "Error: " << error << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
 }
 
 void
-CreateKernel(ImageType::Pointer kernel, unsigned int width)
+CreateKernel(InputImageType::Pointer kernel, unsigned int width)
 {
-  ImageType::IndexType start;
-  start.Fill(0);
+	InputImageType::IndexType start;
+	start.Fill(0);
 
-  ImageType::SizeType size;
-  size.Fill(width);
+	InputImageType::SizeType size;
+	size.Fill(width);
 
-  ImageType::RegionType region;
-  region.SetSize(size);
-  region.SetIndex(start);
+	InputImageType::RegionType region;
+	region.SetSize(size);
+	region.SetIndex(start);
 
-  kernel->SetRegions(region);
-  kernel->Allocate();
+	kernel->SetRegions(region);
+	kernel->Allocate();
 
-  itk::ImageRegionIterator<ImageType> imageIterator(kernel, region);
+	itk::ImageRegionIterator<InputImageType> imageIterator(kernel, region);
 
-  while (!imageIterator.IsAtEnd())
-  {
-    // imageIterator.Set(255);
-    imageIterator.Set(1);
+	while (!imageIterator.IsAtEnd())
+	{
+		// imageIterator.Set(255);
+		imageIterator.Set(1);
 
-    ++imageIterator;
-  }
+		++imageIterator;
+	}
 }
