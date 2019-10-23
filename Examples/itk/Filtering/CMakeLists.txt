@@ -1,0 +1,10 @@
+
+option( BUILD_ITK_FILTERING_EXAMPLES 		"Build the itk filtering examples." ON)
+
+if(BUILD_ITK_FILTERING_EXAMPLES)
+	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+	FOREACH(subdir ${SUBDIRS})
+		ADD_SUBDIRECTORY(${subdir})
+	ENDFOREACH()
+endif()

@@ -1,0 +1,10 @@
+
+option( BUILD_ITK_EXAMPLES 		"Build the itk examples." ON)
+
+if(BUILD_ITK_EXAMPLES)
+	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+	FOREACH(subdir ${SUBDIRS})
+		ADD_SUBDIRECTORY(${subdir})
+	ENDFOREACH()
+endif()
