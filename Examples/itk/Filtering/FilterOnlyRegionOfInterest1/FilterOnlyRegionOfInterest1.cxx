@@ -62,13 +62,21 @@ main(int argc, char * argv[])
 
   PasteType::Pointer pasteFilter = PasteType::New();
 
+  ImageType::Pointer blankCanvas = ImageType::New();
+
+  blankCanvas->SetRegions(reader->GetOutput()->GetLargestPossibleRegion());
+  blankCanvas->Allocate();
+
   pasteFilter->SetSourceImage(medianFilter->GetOutput());
   pasteFilter->SetSourceRegion(medianFilter->GetOutput()->GetRequestedRegion());
-  pasteFilter->SetDestinationImage(reader->GetOutput());
+  //pasteFilter->SetDestinationImage(reader->GetOutput());
+  pasteFilter->SetDestinationImage(blankCanvas);
   pasteFilter->SetDestinationIndex(processIndex);
 
   SubtractType::Pointer diff = SubtractType::New();
-  diff->SetInput1(reader->GetOutput());
+  //diff->SetInput1(reader->GetOutput());
+
+  diff->SetInput1(blankCanvas);
   diff->SetInput2(pasteFilter->GetOutput());
 
 #ifdef ENABLE_QUICKVIEW
