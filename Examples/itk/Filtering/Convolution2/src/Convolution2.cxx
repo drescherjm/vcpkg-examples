@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-#include "Convolution1.h"
+#include "Convolution2.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -25,6 +25,7 @@
 #include "itkImageFileWriter.h"
 #include "itkTIFFImageIO.h"
 #include <itkRescaleIntensityImageFilter.h>
+#include <itkShiftScaleImageFilter.h>
 #include <filesystem>
 #include "itkImageDuplicator.h"
 
@@ -32,14 +33,8 @@
 #include "QuickView.h"
 #endif
 
-
-
 namespace fs = std::filesystem;
 
-std::pair<float, float> getMinMax(InputImageType::Pointer pImage);
-
-std::string	 getFileNameNoPath(const std::string& strFilePath);
-std::string	 getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath);
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,33 +77,28 @@ int main(int argc, char* argv[])
 		std::cerr << "ERROR: Can not open the image file " << strImageFile << std::endl;
 		return EXIT_FAILURE;
 	}
-	
-	InputImageType::Pointer kernel = InputImageType::New();
 
 	using ReaderType = itk::ImageFileReader<InputImageType>;
 	using FilterType = itk::ConvolutionImageFilter<InputImageType, InputImageType, OutputImageType>;
 
 	// Create and setup a reader
-	ReaderType::Pointer reader = ReaderType::New();
-	reader->SetFileName(strImageFile);
+// 	ReaderType::Pointer reader = ReaderType::New();
+// 	reader->SetFileName(strImageFile);
 	
+	InputImageType::Pointer image = LoadImage<InputImageType>(strImageFile);
 	InputImageType::Pointer kernelImage = LoadKernel(strKernel);
 			
 	// Convolve image with kernel.
 	FilterType::Pointer convolutionFilter = FilterType::New();
 	convolutionFilter->NormalizeOn();
-	convolutionFilter->SetInput(reader->GetOutput());
-#if ITK_VERSION_MAJOR >= 4
+	convolutionFilter->SetInput(image);
 	convolutionFilter->SetKernelImage(kernelImage);
-#else
-	convolutionFilter->SetImageKernelInput(kernel);
-#endif
 
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
-	viewer.AddImage<InputImageType>(reader->GetOutput(), true, itksys::SystemTools::GetFilenameName(argv[1]));
+	viewer.AddImage<InputImageType>(image, true, itksys::SystemTools::GetFilenameName(argv[1]));
 	viewer.AddImage<InputImageType>(convolutionFilter->GetOutput(), true, itksys::SystemTools::GetFilenameName(strKernel));
-	viewer.SetViewPortSize(950);
+	viewer.SetViewPortSize(955);
 	viewer.Visualize();
 #endif
 
@@ -135,16 +125,30 @@ InputImageType::Pointer LoadKernel(std::string strKernel)
 
 	auto minMax = getMinMax(kernelReader->GetOutput());
 
-	using RescaleType = itk::RescaleIntensityImageFilter<InputImageType>;
+// 	using RescaleType = itk::RescaleIntensityImageFilter<InputImageType>;
+// 
+// 	RescaleType::Pointer rescaler = RescaleType::New();
+// 
+// 	rescaler->SetOutputMinimum(0);
+// 	rescaler->SetOutputMaximum(minMax.second - minMax.first + 1);
+// 
+// 	rescaler->SetInput(kernelReader->GetOutput());
+// 	rescaler->Update();
+	
+	using RescaleType = itk::ShiftScaleImageFilter<InputImageType,InputImageType>;
 
 	RescaleType::Pointer rescaler = RescaleType::New();
 
-	rescaler->SetOutputMinimum(0);
-	rescaler->SetOutputMaximum(minMax.second - minMax.first);
+// 	rescaler->SetOutputMinimum(0);
+// 	rescaler->SetOutputMaximum(minMax.second - minMax.first + 1);
+
+	rescaler->SetShift(-minMax.first);
 
 	rescaler->SetInput(kernelReader->GetOutput());
 	rescaler->Update();
 	
+	auto newMinMax = getMinMax(rescaler->GetOutput());
+
 	using DuplicatorType = itk::ImageDuplicator<InputImageType>;
 	DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage(rescaler->GetOutput());
@@ -161,6 +165,7 @@ std::pair<float, float> getMinMax(InputImageType::Pointer pImage)
 	StatsType::Pointer stats = StatsType::New();
 	stats->SetInput(pImage);
 	stats->Update();
+	stats->Print(std::cout);
 
 	return { stats->GetMinimum(),stats->GetMaximum() };
 }
