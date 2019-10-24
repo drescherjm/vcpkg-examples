@@ -124,23 +124,10 @@ InputImageType::Pointer LoadKernel(std::string strKernel)
 	kernelReader->Update();
 
 	auto minMax = getMinMax(kernelReader->GetOutput());
-
-// 	using RescaleType = itk::RescaleIntensityImageFilter<InputImageType>;
-// 
-// 	RescaleType::Pointer rescaler = RescaleType::New();
-// 
-// 	rescaler->SetOutputMinimum(0);
-// 	rescaler->SetOutputMaximum(minMax.second - minMax.first + 1);
-// 
-// 	rescaler->SetInput(kernelReader->GetOutput());
-// 	rescaler->Update();
 	
 	using RescaleType = itk::ShiftScaleImageFilter<InputImageType,InputImageType>;
 
 	RescaleType::Pointer rescaler = RescaleType::New();
-
-// 	rescaler->SetOutputMinimum(0);
-// 	rescaler->SetOutputMaximum(minMax.second - minMax.first + 1);
 
 	rescaler->SetShift(-minMax.first);
 
