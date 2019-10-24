@@ -22,6 +22,9 @@
 #include "itkImageFileWriter.h"
 #include "itkTIFFImageIO.h"
 #include <itkRescaleIntensityImageFilter.h>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 #ifdef ENABLE_QUICKVIEW
 #include "QuickView.h"
@@ -74,6 +77,18 @@ int main(int argc, char* argv[])
 		//strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig6_template.tiff)";
 	}
 
+	if (!fs::is_regular_file(strKernel)) {
+		std::cerr << "ERROR: Can not open the kernel file " << strKernel << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	std::string strImageFile = argv[1];
+
+	if (!fs::is_regular_file(strImageFile)) {
+		std::cerr << "ERROR: Can not open the image file " << strImageFile << std::endl;
+		return EXIT_FAILURE;
+	}
+	
 	InputImageType::Pointer kernel = InputImageType::New();
 	//CreateKernel(kernel, width);
 
@@ -82,7 +97,7 @@ int main(int argc, char* argv[])
 
 	// Create and setup a reader
 	ReaderType::Pointer reader = ReaderType::New();
-	reader->SetFileName(argv[1]);
+	reader->SetFileName(strImageFile);
 
 // 	using RescaleType = itk::RescaleIntensityImageFilter<InputImageType>;
 // 
