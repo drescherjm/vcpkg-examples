@@ -80,20 +80,40 @@ int main(int argc, char* argv[])
 
 	using ReaderType = itk::ImageFileReader<InputImageType>;
 	using FilterType = itk::ConvolutionImageFilter<InputImageType, InputImageType, OutputImageType>;
-
-	// Create and setup a reader
-// 	ReaderType::Pointer reader = ReaderType::New();
-// 	reader->SetFileName(strImageFile);
 	
 	InputImageType::Pointer image = LoadImage<InputImageType>(strImageFile);
 	InputImageType::Pointer kernelImage = LoadKernel(strKernel);
-			
+	
+	InputImageType::RegionType region = image->GetLargestPossibleRegion();
+	InputImageType::SizeType size = region.GetSize();
+	
+	if ( (size[0] < 1100) || (size[1] < 1110) ) {
+		std::cerr << "ERROR: Image is smaller than 1110 x 1110";
+		return EXIT_FAILURE;
+	}
+	
+	auto lowerIndex = region.GetIndex();
+
+	lowerIndex[0] += 160;
+	lowerIndex[1] += 160;
+
+	auto upperIndex = region.GetUpperIndex();
+	upperIndex[0] -= 160;
+	upperIndex[1] -= 160;
+
+	region.SetIndex(lowerIndex);
+	region.SetUpperIndex(upperIndex);
+
+	//image->SetRequestedRegion(region);
+
 	// Convolve image with kernel.
 	FilterType::Pointer convolutionFilter = FilterType::New();
 	convolutionFilter->NormalizeOn();
 	convolutionFilter->SetInput(image);
 	convolutionFilter->SetKernelImage(kernelImage);
 
+	convolutionFilter->GetOutput()->SetRequestedRegion(region);
+	
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
 	viewer.AddImage<InputImageType>(image, true, itksys::SystemTools::GetFilenameName(argv[1]));
