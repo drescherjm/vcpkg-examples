@@ -48,30 +48,31 @@ std::pair<float, float> getMinMax(InputImageType::Pointer pImage)
 int main(int argc, char* argv[])
 {
 
-	//std::string strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr50\sig50_template.tiff)";
-
-	//std::string strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr100\sig100_template.tiff)";
-
-	//std::string strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr25\sig25_template.tiff)";
-	
-	std::string strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig12_template.tiff)";
-
-	//std::string strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig6_template.tiff)";
-
 	// Verify command line arguments
 	if (argc < 2)
 	{
 		std::cerr << "Usage: ";
-		std::cerr << argv[0] << "inputImageFile [width]" << std::endl;
+		std::cerr << argv[0] << "inputImageFile [kernel_file]" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	// Parse command line arguments
-	//unsigned int width = 3;
-// 	if (argc > 2)
-// 	{
-// 		width = std::stoi(argv[2]);
-// 	}
+	std::string strKernel;
+
+	if (argc > 2)
+	{
+		strKernel = argv[2];
+	}
+	else {
+		//strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr50\sig50_template.tiff)";
+
+		//strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr100\sig100_template.tiff)";
+
+		//strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr25\sig25_template.tiff)";
+
+		strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig12_template.tiff)";
+
+		//strKernel = R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig6_template.tiff)";
+	}
 
 	InputImageType::Pointer kernel = InputImageType::New();
 	//CreateKernel(kernel, width);
@@ -123,12 +124,13 @@ int main(int argc, char* argv[])
 #endif
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
-	viewer.AddImage<ImageType>(reader->GetOutput(), true, itksys::SystemTools::GetFilenameName(argv[1]));
+	viewer.AddImage<InputImageType>(reader->GetOutput(), true, itksys::SystemTools::GetFilenameName(argv[1]));
 
 	std::stringstream desc;
-	desc << "ConvolutionFilter\n"
-		<< "Kernel Witdh = " << width;
-	viewer.AddImage<ImageType>(convolutionFilter->GetOutput(), true, desc.str());
+// 	desc << "ConvolutionFilter\n"
+// 		<< "Kernel Witdh = " << width;
+	viewer.AddImage<InputImageType>(convolutionFilter->GetOutput(), true, desc.str());
+	viewer.SetViewPortSize(700);
 	viewer.Visualize();
 #endif
 	//convolutionFilter->Update();
