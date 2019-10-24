@@ -1,11 +1,11 @@
-myproject(Convolution1)
+myproject(Convolution2)
 
 find_package(ITK REQUIRED )
 include(${ITK_USE_FILE})
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(${LOCAL_PROJECT_NAME} MACOSX_BUNDLE src/Convolution1.cxx  Include/Convolution1.h)
+add_executable(${LOCAL_PROJECT_NAME} MACOSX_BUNDLE src/Convolution2.cxx  Include/Convolution2.h)
 
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE Include)
 
