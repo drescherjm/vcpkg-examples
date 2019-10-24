@@ -46,12 +46,14 @@ main(int argc, char * argv[])
 
   reader->Update();
 
+  auto region = reader->GetOutput()->GetLargestPossibleRegion();
+
   itk::Size<2> processSize;
-  processSize[0] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] / 2;
+  processSize[0] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0];
   processSize[1] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[1] / 2;
 
   itk::Index<2> processIndex;
-  processIndex[0] = processSize[0] / 2;
+  processIndex[0] = 0;
   processIndex[1] = processSize[1] / 2;
 
   itk::ImageRegion<2> processRegion(processIndex, processSize);
@@ -64,19 +66,20 @@ main(int argc, char * argv[])
 
   ImageType::Pointer blankCanvas = ImageType::New();
 
-  blankCanvas->SetRegions(reader->GetOutput()->GetLargestPossibleRegion());
+  blankCanvas->SetRegions(region);
   blankCanvas->Allocate();
+  blankCanvas->FillBuffer(0);
 
   pasteFilter->SetSourceImage(medianFilter->GetOutput());
   pasteFilter->SetSourceRegion(medianFilter->GetOutput()->GetRequestedRegion());
-  //pasteFilter->SetDestinationImage(reader->GetOutput());
-  pasteFilter->SetDestinationImage(blankCanvas);
+  pasteFilter->SetDestinationImage(reader->GetOutput());
+  //pasteFilter->SetDestinationImage(blankCanvas);
   pasteFilter->SetDestinationIndex(processIndex);
 
   SubtractType::Pointer diff = SubtractType::New();
-  //diff->SetInput1(reader->GetOutput());
+  diff->SetInput1(reader->GetOutput());
 
-  diff->SetInput1(blankCanvas);
+  //diff->SetInput1(blankCanvas);
   diff->SetInput2(pasteFilter->GetOutput());
 
 #ifdef ENABLE_QUICKVIEW

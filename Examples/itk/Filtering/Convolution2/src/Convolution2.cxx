@@ -32,6 +32,7 @@
 #ifdef ENABLE_QUICKVIEW
 #include "QuickView.h"
 #endif
+#include "itkPasteImageFilter.h"
 
 namespace fs = std::filesystem;
 
@@ -83,8 +84,9 @@ int main(int argc, char* argv[])
 	
 	InputImageType::Pointer image = LoadImage<InputImageType>(strImageFile);
 	InputImageType::Pointer kernelImage = LoadKernel(strKernel);
-	
+	 
 	InputImageType::RegionType region = image->GetLargestPossibleRegion();
+	InputImageType::RegionType inputRegion = region;
 	InputImageType::SizeType size = region.GetSize();
 	
 	if ( (size[0] < 1100) || (size[1] < 1110) ) {
@@ -113,11 +115,28 @@ int main(int argc, char* argv[])
 	convolutionFilter->SetKernelImage(kernelImage);
 
 	convolutionFilter->GetOutput()->SetRequestedRegion(region);
+
+	using PasteType = itk::PasteImageFilter<OutputImageType, OutputImageType>;
+
+
+	OutputImageType::Pointer blankCanvas = OutputImageType::New();
+
+	blankCanvas->SetRegions(inputRegion);
+	blankCanvas->Allocate();
+	blankCanvas->FillBuffer(0);
+
+	PasteType::Pointer pasteImageFilter = PasteType::New();
+
+	pasteImageFilter->SetSourceImage(convolutionFilter->GetOutput());
+	pasteImageFilter->SetSourceRegion(convolutionFilter->GetOutput()->GetRequestedRegion());
+	pasteImageFilter->SetDestinationImage(blankCanvas);
+	pasteImageFilter->SetDestinationIndex(lowerIndex);
+
 	
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
 	viewer.AddImage<InputImageType>(image, true, itksys::SystemTools::GetFilenameName(argv[1]));
-	viewer.AddImage<InputImageType>(convolutionFilter->GetOutput(), true, itksys::SystemTools::GetFilenameName(strKernel));
+	viewer.AddImage<InputImageType>(pasteImageFilter->GetOutput(), true, itksys::SystemTools::GetFilenameName(strKernel));
 	viewer.SetViewPortSize(955);
 	viewer.Visualize();
 #endif
@@ -130,7 +149,7 @@ int main(int argc, char* argv[])
 
 	stats->Print(std::cout);
 
-	return writeOutputFile(strImageFile, strKernel, convolutionFilter->GetOutput());
+	return writeOutputFile(strImageFile, strKernel, pasteImageFilter->GetOutput());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
