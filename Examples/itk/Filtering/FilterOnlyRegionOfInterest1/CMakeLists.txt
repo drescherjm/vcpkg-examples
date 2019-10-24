@@ -1,11 +1,11 @@
-myproject(FilterOnlyRegionOfInterest0)
+myproject(FilterOnlyRegionOfInterest1)
 
 find_package(ITK REQUIRED )
 include(${ITK_USE_FILE})
 
 #set(CMAKE_CXX_STANDARD 17)
 
-add_executable(${LOCAL_PROJECT_NAME} MACOSX_BUNDLE FilterOnlyRegionOfInterest0.cxx)
+add_executable(${LOCAL_PROJECT_NAME} MACOSX_BUNDLE FilterOnlyRegionOfInterest1.cxx)
 
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE Include)
 
