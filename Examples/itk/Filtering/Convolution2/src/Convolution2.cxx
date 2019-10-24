@@ -183,7 +183,22 @@ std::string getFileNameNoPath(const std::string& strFilePath)
 
 std::string getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath)
 {
-	std::string retVal = getFileNameNoPath(strImagePath) + "_" + getFileNameNoPath(strKernelPath) + ".tiff";
+	std::string strImageName = getFileNameNoPath(strImagePath);
+	std::string strKernelName = getFileNameNoPath(strKernelPath);
+
+	std::string retVal = strImageName + "_" + strKernelName  + ".tiff";
+
+	if (fs::exists(retVal)) {
+		for (uint16_t i = 0; i < 999; ++i) {
+			std::ostringstream fn;
+			fn << strImageName << '_' << strKernelName << strKernelName << '_' << std::setfill('0') << std::setw(3) << i << ".tiff";
+
+			if (!fs::exists(fn.str())) {
+				retVal = fn.str();
+				break;
+			}
+		}
+	}
 
 	return retVal;
 }
