@@ -15,6 +15,7 @@
  *  limitations under the License.
  *
  *=========================================================================*/
+
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkConvolutionImageFilter.h"
@@ -24,29 +25,24 @@
 #include <itkRescaleIntensityImageFilter.h>
 #include <filesystem>
 
-namespace fs = std::filesystem;
-
 #ifdef ENABLE_QUICKVIEW
 #include "QuickView.h"
 #endif
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
 //using InputImageType = itk::Image<unsigned short, 2>;
 using OutputImageType = itk::Image<float, 2>;
-
 using InputImageType = OutputImageType;
+
+namespace fs = std::filesystem;
 
 std::pair<float, float> getMinMax(InputImageType::Pointer pImage);
 
+std::string	 getFileNameNoPath(const std::string& strFilePath);
+std::string	 getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath);
 
-std::pair<float, float> getMinMax(InputImageType::Pointer pImage)
-{
-	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
-	StatsType::Pointer stats = StatsType::New();
-	stats->SetInput(pImage);
-	stats->Update();
-
-	return { stats->GetMinimum(),stats->GetMaximum() };
-}
+/////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[])
 {
@@ -60,7 +56,6 @@ int main(int argc, char* argv[])
 	}
 
 	std::string strKernel;
-
 	if (argc > 2)
 	{
 		strKernel = argv[2];
@@ -90,7 +85,6 @@ int main(int argc, char* argv[])
 	}
 	
 	InputImageType::Pointer kernel = InputImageType::New();
-	//CreateKernel(kernel, width);
 
 	using ReaderType = itk::ImageFileReader<InputImageType>;
 	using FilterType = itk::ConvolutionImageFilter<InputImageType, InputImageType, OutputImageType>;
@@ -126,8 +120,7 @@ int main(int argc, char* argv[])
 
 	rescaler->SetInput(kernelReader->GetOutput());
 	rescaler->Update();
-
-	
+		
 	// Convolve image with kernel.
 	FilterType::Pointer convolutionFilter = FilterType::New();
 	convolutionFilter->NormalizeOn();
@@ -137,25 +130,19 @@ int main(int argc, char* argv[])
 #else
 	convolutionFilter->SetImageKernelInput(kernel);
 #endif
+
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
 	viewer.AddImage<InputImageType>(reader->GetOutput(), true, itksys::SystemTools::GetFilenameName(argv[1]));
-
-	std::stringstream desc;
-// 	desc << "ConvolutionFilter\n"
-// 		<< "Kernel Witdh = " << width;
-	viewer.AddImage<InputImageType>(convolutionFilter->GetOutput(), true, desc.str());
-	viewer.SetViewPortSize(700);
+	viewer.AddImage<InputImageType>(convolutionFilter->GetOutput(), true, itksys::SystemTools::GetFilenameName(strKernel));
+	viewer.SetViewPortSize(950);
 	viewer.Visualize();
 #endif
-	//convolutionFilter->Update();
 
 	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
 
 	StatsType::Pointer stats = StatsType::New();
-
 	stats->SetInput(convolutionFilter->GetOutput());
-
 	stats->Update();
 
 	stats->Print(std::cout);
@@ -164,12 +151,10 @@ int main(int argc, char* argv[])
 	using TIFFIOType = itk::TIFFImageIO;
 
 	TIFFIOType::Pointer tiffIO = TIFFIOType::New();
-	//   tiffIO->SetPixelType(itk::ImageIOBase::SCALAR);
-	//   tiffIO->SetNumberOfComponents(1);
-	//   tiffIO->SetCompressionToLZW();
 
+	
 	WriterType::Pointer writer = WriterType::New();
-	writer->SetFileName("output.tiff");
+	writer->SetFileName(getOutputFileName(strImageFile,strKernel));
 	writer->SetInput(convolutionFilter->GetOutput());
 	writer->SetImageIO(tiffIO);
 
@@ -186,36 +171,41 @@ int main(int argc, char* argv[])
 	return EXIT_SUCCESS;
 }
 
-void
-CreateKernel(InputImageType::Pointer kernel, unsigned int width)
-{
-	InputImageType::IndexType start;
-	start.Fill(0);
-
-	InputImageType::SizeType size;
-	size.Fill(width);
-
-	InputImageType::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
-
-	kernel->SetRegions(region);
-	kernel->Allocate();
-
-	itk::ImageRegionIterator<InputImageType> imageIterator(kernel, region);
-
-	while (!imageIterator.IsAtEnd())
-	{
-		// imageIterator.Set(255);
-		imageIterator.Set(1);
-
-		++imageIterator;
-	}
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////
 
 void LoadKernel(InputImageType::Pointer kernel, std::string strFile)
 {
 
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+std::pair<float, float> getMinMax(InputImageType::Pointer pImage)
+{
+	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
+	StatsType::Pointer stats = StatsType::New();
+	stats->SetInput(pImage);
+	stats->Update();
+
+	return { stats->GetMinimum(),stats->GetMaximum() };
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+std::string getFileNameNoPath(const std::string& strFilePath)
+{
+	fs::path path(strFilePath);
+
+	return path.stem().string();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+std::string getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath)
+{
+	std::string retVal = getFileNameNoPath(strImagePath) + "_" + getFileNameNoPath(strKernelPath) + ".tiff";
+
+	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////

@@ -40,4 +40,7 @@ include(${PROJECT_SOURCE_DIR}/CMake/Scripts/HelperMacros.cmake)
 #Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+set (LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
+set (EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+
 add_subdirectory(Examples)
