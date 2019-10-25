@@ -28,6 +28,7 @@
 #include <itkShiftScaleImageFilter.h>
 #include <filesystem>
 #include "itkImageDuplicator.h"
+#include <itkCastImageFilter.h>
 
 #ifdef ENABLE_QUICKVIEW
 #include "QuickView.h"
@@ -80,7 +81,7 @@ int main(int argc, char* argv[])
 	}
 
 	using ReaderType = itk::ImageFileReader<InputImageType>;
-	using FilterType = itk::ConvolutionImageFilter<InputImageType, InputImageType, OutputImageType>;
+	using FilterType = itk::ConvolutionImageFilter<InputImageType, InputImageType, ConvolutionImageType>;
 	
 	InputImageType::Pointer image = LoadImage<InputImageType>(strImageFile);
 	InputImageType::Pointer kernelImage = LoadKernel(strKernel);
@@ -116,14 +117,14 @@ int main(int argc, char* argv[])
 
 	convolutionFilter->GetOutput()->SetRequestedRegion(region);
 
-	using PasteType = itk::PasteImageFilter<OutputImageType, OutputImageType>;
-
-
-	OutputImageType::Pointer blankCanvas = OutputImageType::New();
+	using PasteType = itk::PasteImageFilter<ConvolutionImageType, ConvolutionImageType>;
+	
+	ConvolutionImageType::Pointer blankCanvas = ConvolutionImageType::New();
 
 	blankCanvas->SetRegions(inputRegion);
 	blankCanvas->Allocate();
 	blankCanvas->FillBuffer(0);
+	blankCanvas->SetSpacing(image->GetSpacing());
 
 	PasteType::Pointer pasteImageFilter = PasteType::New();
 
@@ -132,11 +133,33 @@ int main(int argc, char* argv[])
 	pasteImageFilter->SetDestinationImage(blankCanvas);
 	pasteImageFilter->SetDestinationIndex(lowerIndex);
 
+	pasteImageFilter->Update();
+	//pasteImageFilter->Print(std::cout);
+	
+	image->SetRequestedRegion(inputRegion);
+	image->Print(std::cout);
+
+	using CastType = itk::CastImageFilter<ConvolutionImageType, OutputImageType>;
+
+	CastType::Pointer castFilt = CastType::New();
+	castFilt->SetInput(pasteImageFilter->GetOutput());
+	castFilt->Update();
+
+	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
+	DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	duplicator->SetInputImage(castFilt->GetOutput());
+	duplicator->Update();
+
+	OutputImageType::Pointer outputImage = duplicator->GetOutput();
+
+	duplicator->Print(std::cout);
+
 	
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
 	viewer.AddImage<InputImageType>(image, true, itksys::SystemTools::GetFilenameName(argv[1]));
-	viewer.AddImage<InputImageType>(pasteImageFilter->GetOutput(), true, itksys::SystemTools::GetFilenameName(strKernel));
+	viewer.AddImage<InputImageType>(outputImage, true, "Output");
+	//viewer.AddImage<InputImageType>(pasteImageFilter->GetOutput(), true, itksys::SystemTools::GetFilenameName(strKernel));
 	viewer.SetViewPortSize(955);
 	viewer.Visualize();
 #endif
@@ -144,12 +167,12 @@ int main(int argc, char* argv[])
 	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
 
 	StatsType::Pointer stats = StatsType::New();
-	stats->SetInput(convolutionFilter->GetOutput());
+	stats->SetInput(outputImage);
 	stats->Update();
 
 	stats->Print(std::cout);
 
-	return writeOutputFile(strImageFile, strKernel, pasteImageFilter->GetOutput());
+	return writeOutputFile(strImageFile, strKernel, outputImage);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +240,7 @@ std::string getOutputFileName(const std::string& strImagePath, const std::string
 	if (fs::exists(retVal)) {
 		for (uint16_t i = 0; i < 999; ++i) {
 			std::ostringstream fn;
-			fn << strImageName << '_' << strKernelName << strKernelName << '_' << std::setfill('0') << std::setw(3) << i << ".tiff";
+			fn << strImageName << '_' << strKernelName << '_' << std::setfill('0') << std::setw(3) << i << ".tiff";
 
 			if (!fs::exists(fn.str())) {
 				retVal = fn.str();

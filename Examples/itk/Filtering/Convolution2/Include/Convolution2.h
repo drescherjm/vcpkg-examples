@@ -10,6 +10,7 @@
 
 //using InputImageType = itk::Image<unsigned short, 2>;
 using OutputImageType = itk::Image<float, 2>;
+using ConvolutionImageType = itk::Image<double, 2>;
 using InputImageType = OutputImageType;
 
 /////////////////////////////////////////////////////////////////////////////////////////
