@@ -55,4 +55,38 @@ typename ImageType::Pointer LoadImage(std::string strKernel)
 	return duplicator->GetOutput();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+template<typename ConvolutionType, typename OutputType, typename std::enable_if<std::is_same<ConvolutionType, OutputType>::value>::type* =nullptr>
+typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImageType* pImageData)
+{
+	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
+	DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	duplicator->SetInputImage(pImageData);
+	duplicator->Update();
+
+	return duplicator->GetOutput();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename ConvolutionType, typename OutputType, typename std::enable_if<!std::is_same<ConvolutionType, OutputType>::value>::type * = nullptr>
+typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImageType* pImageData)
+{
+	using CastType = itk::CastImageFilter<ConvolutionImageType, OutputImageType>;
+
+	CastType::Pointer castFilt = CastType::New();
+	castFilt->SetInput(pImageData);
+	castFilt->Update();
+
+	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
+	DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	duplicator->SetInputImage(castFilt->GetOutput());
+	duplicator->Update();
+
+	return duplicator->GetOutput();
+}
+
+
 #endif // CONVOLUTION1_H

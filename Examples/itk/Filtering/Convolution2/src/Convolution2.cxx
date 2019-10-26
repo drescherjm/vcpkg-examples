@@ -139,22 +139,29 @@ int main(int argc, char* argv[])
 	image->SetRequestedRegion(inputRegion);
 	image->Print(std::cout);
 
-	using CastType = itk::CastImageFilter<ConvolutionImageType, OutputImageType>;
+// 	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
+// 	DuplicatorType::Pointer duplicator = DuplicatorType::New();
+// 
+// 	if constexpr (std::is_same<OutputImageType, ConvolutionImageType>::value) {
+// 		duplicator->SetInputImage(pasteImageFilter->GetOutput());
+// 	}
+// 	else {
+// 		using CastType = itk::CastImageFilter<ConvolutionImageType, OutputImageType>;
+// 
+// 		CastType::Pointer castFilt = CastType::New();
+// 		castFilt->SetInput(pasteImageFilter->GetOutput());
+// 		castFilt->Update();
+// 		duplicator->SetInputImage(castFilt->GetOutput());
+// 	}
+// 	
+// 	duplicator->Update();
 
-	CastType::Pointer castFilt = CastType::New();
-	castFilt->SetInput(pasteImageFilter->GetOutput());
-	castFilt->Update();
+//	OutputImageType::Pointer outputImage = duplicator->GetOutput();
 
-	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
-	DuplicatorType::Pointer duplicator = DuplicatorType::New();
-	duplicator->SetInputImage(castFilt->GetOutput());
-	duplicator->Update();
+	OutputImageType::Pointer outputImage = transformFinalOutputForFileWriting<ConvolutionImageType, OutputImageType>(pasteImageFilter->GetOutput());
 
-	OutputImageType::Pointer outputImage = duplicator->GetOutput();
+	outputImage->Print(std::cout);
 
-	duplicator->Print(std::cout);
-
-	
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
 	viewer.AddImage<InputImageType>(image, true, itksys::SystemTools::GetFilenameName(argv[1]));
@@ -260,7 +267,6 @@ int writeOutputFile(std::string strImageFile, std::string strKernel, OutputImage
 	using TIFFIOType = itk::TIFFImageIO;
 
 	TIFFIOType::Pointer tiffIO = TIFFIOType::New();
-
 
 	WriterType::Pointer writer = WriterType::New();
 	writer->SetFileName(getOutputFileName(strImageFile, strKernel));
