@@ -34,6 +34,8 @@
 #include "QuickView.h"
 #endif
 #include "itkPasteImageFilter.h"
+#include "itkSpatialObjectToImageFilter.h"
+#include <itkEllipseSpatialObject.h>
 
 namespace fs = std::filesystem;
 
@@ -139,21 +141,22 @@ int main(int argc, char* argv[])
 	image->SetRequestedRegion(inputRegion);
 	image->Print(std::cout);
 
-	using CastType = itk::CastImageFilter<ConvolutionImageType, OutputImageType>;
+	OutputImageType::Pointer outputImage = transformFinalOutputForFileWriting<ConvolutionImageType, OutputImageType>(pasteImageFilter->GetOutput());
 
-	CastType::Pointer castFilt = CastType::New();
-	castFilt->SetInput(pasteImageFilter->GetOutput());
-	castFilt->Update();
+	outputImage->Print(std::cout);
 
-	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
-	DuplicatorType::Pointer duplicator = DuplicatorType::New();
-	duplicator->SetInputImage(castFilt->GetOutput());
-	duplicator->Update();
 
-	OutputImageType::Pointer outputImage = duplicator->GetOutput();
+	using ImageCalculatorFilterType = itk::MinimumMaximumImageCalculator<OutputImageType>;
 
-	duplicator->Print(std::cout);
+	ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+	imageCalculatorFilter->SetImage(outputImage);
+	imageCalculatorFilter->Compute();
 
+
+	OutputImageType::IndexType maximumLocation = imageCalculatorFilter->GetIndexOfMaximum();
+	auto nMaximum = imageCalculatorFilter->GetMaximum();
+
+	drawFilledCircleInImage(outputImage, maximumLocation[0], maximumLocation[1], 200);
 	
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
@@ -164,13 +167,16 @@ int main(int argc, char* argv[])
 	viewer.Visualize();
 #endif
 
-	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
 
-	StatsType::Pointer stats = StatsType::New();
-	stats->SetInput(outputImage);
-	stats->Update();
 
-	stats->Print(std::cout);
+
+// 	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
+// 
+// 	StatsType::Pointer stats = StatsType::New();
+// 	stats->SetInput(outputImage);
+// 	stats->Update();
+// 
+// 	stats->Print(std::cout);
 
 	return writeOutputFile(strImageFile, strKernel, outputImage);
 }
@@ -250,6 +256,47 @@ std::string getOutputFileName(const std::string& strImagePath, const std::string
 	}
 
 	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nRadius)
+{
+// 	using EllipseType = itk::EllipseSpatialObject<2>;
+// 
+// 	EllipseType::Pointer elipse = EllipseType::New();
+// 	elipse->SetRadius(nRadius);
+// 	elipse->SetDefaultInsideValue(0.0);
+// 
+// 	using SpatialFilter = itk::SpatialObjectToImageFilter<EllipseType, OutputImageType>;
+// 
+// 	SpatialFilter::Pointer pOut = SpatialFilter::New();
+// 
+// 	pOut->SetSize(pImage->GetLargestPossibleRegion());
+// 	pOut->SetInput(elipse->GetOutout)
+
+	OutputImageType::IndexType centerPoint, localIndex;
+
+	centerPoint[0] = xPos;
+	centerPoint[1] = yPos;
+
+	double fRadius = (pImage->GetSpacing()[0]) * nRadius;
+
+	for (double angle = 0; angle <= itk::Math::twopi; angle += itk::Math::pi / 60.0)
+	{
+		using IndexValueType = OutputImageType::IndexType::IndexValueType;
+
+		localIndex[0] = itk::Math::Round<IndexValueType>(centerPoint[0] + (fRadius * std::cos(angle)));
+
+		localIndex[1] = itk::Math::Round<IndexValueType>(centerPoint[1] + (fRadius * std::sin(angle)));
+		OutputImageType::RegionType outputRegion = pImage->GetLargestPossibleRegion();
+
+		if (outputRegion.IsInside(localIndex))
+		{
+			pImage->SetPixel(localIndex, 0);
+		}
+	}
+	
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

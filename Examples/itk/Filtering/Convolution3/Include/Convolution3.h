@@ -1,7 +1,9 @@
 #pragma once
 
-#ifndef CONVOLUTION1_H
-#define CONVOLUTION1_H
+#pragma once
+
+#ifndef CONVOLUTION3_H
+#define CONVOLUTION3_H
 
 #include <string>
 #include <itkImage.h>
@@ -22,6 +24,7 @@ std::pair<float, float> getMinMax(InputImageType::Pointer pImage);
 
 std::string				getFileNameNoPath(const std::string& strFilePath);
 std::string				getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath);
+void					drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nRadius);
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,4 +90,6 @@ typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImage
 	return duplicator->GetOutput();
 }
 
-#endif // CONVOLUTION1_H
+/////////////////////////////////////////////////////////////////////////////////////////
+
+#endif // CONVOLUTION3_H
