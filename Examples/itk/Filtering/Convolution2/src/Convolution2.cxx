@@ -139,25 +139,6 @@ int main(int argc, char* argv[])
 	image->SetRequestedRegion(inputRegion);
 	image->Print(std::cout);
 
-// 	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
-// 	DuplicatorType::Pointer duplicator = DuplicatorType::New();
-// 
-// 	if constexpr (std::is_same<OutputImageType, ConvolutionImageType>::value) {
-// 		duplicator->SetInputImage(pasteImageFilter->GetOutput());
-// 	}
-// 	else {
-// 		using CastType = itk::CastImageFilter<ConvolutionImageType, OutputImageType>;
-// 
-// 		CastType::Pointer castFilt = CastType::New();
-// 		castFilt->SetInput(pasteImageFilter->GetOutput());
-// 		castFilt->Update();
-// 		duplicator->SetInputImage(castFilt->GetOutput());
-// 	}
-// 	
-// 	duplicator->Update();
-
-//	OutputImageType::Pointer outputImage = duplicator->GetOutput();
-
 	OutputImageType::Pointer outputImage = transformFinalOutputForFileWriting<ConvolutionImageType, OutputImageType>(pasteImageFilter->GetOutput());
 
 	outputImage->Print(std::cout);
