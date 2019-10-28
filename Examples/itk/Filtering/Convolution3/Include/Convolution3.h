@@ -24,8 +24,7 @@ std::pair<float, float> getMinMax(InputImageType::Pointer pImage);
 
 std::string				getFileNameNoPath(const std::string& strFilePath);
 std::string				getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath);
-void					drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nRadius);
-
+void					drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nRadius, double fColor);
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename ImageType>

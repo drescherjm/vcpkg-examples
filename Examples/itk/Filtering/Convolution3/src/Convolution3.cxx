@@ -150,13 +150,21 @@ int main(int argc, char* argv[])
 
 	ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
 	imageCalculatorFilter->SetImage(outputImage);
-	imageCalculatorFilter->Compute();
 
+	for (int i = 0; i < 30; ++i) {
+		imageCalculatorFilter->Compute();
 
-	OutputImageType::IndexType maximumLocation = imageCalculatorFilter->GetIndexOfMaximum();
-	auto nMaximum = imageCalculatorFilter->GetMaximum();
+		OutputImageType::IndexType maximumLocation = imageCalculatorFilter->GetIndexOfMaximum();
+		auto nMaximum = imageCalculatorFilter->GetMaximum();
 
-	drawFilledCircleInImage(outputImage, maximumLocation[0], maximumLocation[1], 200);
+		if (nMaximum <= 2) {
+			break;
+		}
+
+		std::cout << i << " " << maximumLocation[0] << " " << maximumLocation[1] << " " << nMaximum << std::endl;
+
+		drawFilledCircleInImage(outputImage, maximumLocation[0], maximumLocation[1], 200,0);
+	}
 	
 #ifdef ENABLE_QUICKVIEW
 	QuickView viewer;
@@ -166,9 +174,6 @@ int main(int argc, char* argv[])
 	viewer.SetViewPortSize(955);
 	viewer.Visualize();
 #endif
-
-
-
 
 // 	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
 // 
@@ -260,7 +265,19 @@ std::string getOutputFileName(const std::string& strImagePath, const std::string
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nRadius)
+void setPixel(OutputImageType* pImage, const OutputImageType::RegionType& region, int nX, int nY, double fColor)
+{
+	OutputImageType::IndexType nPos;
+	nPos[0] = nX;
+	nPos[1] = nY;
+	if (region.IsInside(nPos)) {
+		pImage->SetPixel(nPos, fColor);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nRadius,double fColor)
 {
 // 	using EllipseType = itk::EllipseSpatialObject<2>;
 // 
@@ -280,23 +297,62 @@ void drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nR
 	centerPoint[0] = xPos;
 	centerPoint[1] = yPos;
 
-	double fRadius = (pImage->GetSpacing()[0]) * nRadius;
+	//double fRadius = (pImage->GetSpacing()[0]) * nRadius;
 
-	for (double angle = 0; angle <= itk::Math::twopi; angle += itk::Math::pi / 60.0)
+// 	double fRadius = nRadius;
+// 
+// 	for (double angle = 0; angle <= itk::Math::twopi; angle += itk::Math::pi / 60.0)
+// 	{
+// 		using IndexValueType = OutputImageType::IndexType::IndexValueType;
+// 
+// 		localIndex[0] = itk::Math::Round<IndexValueType>(centerPoint[0] + (fRadius * std::cos(angle)));
+// 
+// 		localIndex[1] = itk::Math::Round<IndexValueType>(centerPoint[1] + (fRadius * std::sin(angle)));
+// 		OutputImageType::RegionType outputRegion = pImage->GetLargestPossibleRegion();
+// 
+// 		if (outputRegion.IsInside(localIndex))
+// 		{
+// 			pImage->SetPixel(localIndex, 0);
+// 		}
+// 	}
+
+	OutputImageType::RegionType outputRegion = pImage->GetLargestPossibleRegion();
+
+	int x0 = xPos;
+	int y0 = yPos;
+
+	int x = nRadius;
+	int y = 0;
+	int xChange = 1 - (nRadius << 1);
+	int yChange = 0;
+	int radiusError = 0;
+
+	while (x >= y)
 	{
-		using IndexValueType = OutputImageType::IndexType::IndexValueType;
-
-		localIndex[0] = itk::Math::Round<IndexValueType>(centerPoint[0] + (fRadius * std::cos(angle)));
-
-		localIndex[1] = itk::Math::Round<IndexValueType>(centerPoint[1] + (fRadius * std::sin(angle)));
-		OutputImageType::RegionType outputRegion = pImage->GetLargestPossibleRegion();
-
-		if (outputRegion.IsInside(localIndex))
+		for (int i = x0 - x; i <= x0 + x; i++)
 		{
-			pImage->SetPixel(localIndex, 0);
+			setPixel(pImage,outputRegion,i, y0 + y, fColor);
+			setPixel(pImage,outputRegion,i, y0 - y, fColor);
+		}
+		for (int i = x0 - y; i <= x0 + y; i++)
+		{
+			setPixel(pImage,outputRegion,i, y0 + x, fColor);
+			setPixel(pImage,outputRegion,i, y0 - x, fColor);
+		}
+
+		y++;
+		radiusError += yChange;
+		yChange += 2;
+		if (((radiusError << 1) + xChange) > 0)
+		{
+			x--;
+			radiusError += xChange;
+			xChange += 2;
 		}
 	}
-	
+
+	setPixel(pImage, outputRegion, x0, y0, 1.0);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
