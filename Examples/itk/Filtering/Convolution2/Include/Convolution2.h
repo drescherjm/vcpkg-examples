@@ -10,7 +10,7 @@
 
 //using InputImageType = itk::Image<unsigned short, 2>;
 using OutputImageType = itk::Image<float, 2>;
-using ConvolutionImageType = itk::Image<double, 2>;
+using ConvolutionImageType = itk::Image<float, 2>;
 using InputImageType = OutputImageType;
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -87,6 +87,5 @@ typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImage
 
 	return duplicator->GetOutput();
 }
-
 
 #endif // CONVOLUTION1_H
