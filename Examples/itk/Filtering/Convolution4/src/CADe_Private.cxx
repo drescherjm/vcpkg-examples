@@ -239,6 +239,9 @@ bool CADe::cePrivate::processKernel(const TemplateInfoType& info,
 			auto pOutputImage = performConvolution(info, pImage, pKernelImage, inputRegion, outputRegion);
 
 			retVal = writeOutputFile(info, strImageFilePath, pOutputImage);
+			if (retVal) {
+				retVal = calculateScores(info, pOutputImage, vecScores);
+			}
 		}
 	}
 	else {
@@ -376,6 +379,13 @@ std::pair<bool, CADe::cePrivate::TemplateType> CADe::cePrivate::getTemplateType(
 	}
 
 	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+bool CADe::cePrivate::calculateScores(const TemplateInfoType& info, OutputImageType::Pointer outputImage, ScoreVector& vecScores)
+{
+	return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

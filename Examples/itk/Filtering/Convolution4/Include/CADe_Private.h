@@ -77,6 +77,11 @@ public:
 		InputImageType::RegionType& inputRegion,
 		InputImageType::RegionType& outputRegion);
 
+
+	bool	calculateScores(const TemplateInfoType& info,
+		OutputImageType::Pointer outputImage,
+		ScoreVector& vecScores);
+
 	bool	writeOutputFile(const TemplateInfoType& info,
 		std::string strInputImage,
 		OutputImageType::Pointer output);
