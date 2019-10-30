@@ -175,14 +175,6 @@ int main(int argc, char* argv[])
 	viewer.Visualize();
 #endif
 
-// 	using StatsType = itk::StatisticsImageFilter<OutputImageType>;
-// 
-// 	StatsType::Pointer stats = StatsType::New();
-// 	stats->SetInput(outputImage);
-// 	stats->Update();
-// 
-// 	stats->Print(std::cout);
-
 	return writeOutputFile(strImageFile, strKernel, outputImage);
 }
 
