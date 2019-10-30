@@ -5,23 +5,64 @@
 #include <itkStatisticsImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkShiftScaleImageFilter.h>
+#include <filesystem>
+#include <itkConvolutionImageFilter.h>
+#include <itkPasteImageFilter.h>
+#include <itkCastImageFilter.h>
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
 const uint16_t IMAGE_SIZE_X{ 1100 };
 const uint16_t IMAGE_SIZE_Y{ 1100 };
 
+const uint16_t TEMPLATE_SIZE_MIN_X{ 3 };
+const uint16_t TEMPLATE_SIZE_MIN_Y{ 3 };
+
 const uint16_t IGNORE_SIZE_TOP{ 160 };
 const uint16_t IGNORE_SIZE_LEFT{ 160 };
+
+namespace fs = std::filesystem;
+using OutputImageType = itk::Image<float, 2>;
+using ConvolutionImageType = itk::Image<double, 2>;
+using InputImageType = OutputImageType;
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename ConvolutionType, typename OutputType, typename std::enable_if<std::is_same<ConvolutionType, OutputType>::value>::type * = nullptr>
+typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImageType* pImageData)
+{
+	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
+	DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	duplicator->SetInputImage(pImageData);
+	duplicator->Update();
+
+	return duplicator->GetOutput();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename ConvolutionType, typename OutputType, typename std::enable_if<!std::is_same<ConvolutionType, OutputType>::value>::type * = nullptr>
+typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImageType* pImageData)
+{
+	using CastType = itk::CastImageFilter<ConvolutionImageType, OutputImageType>;
+
+	CastType::Pointer castFilt = CastType::New();
+	castFilt->SetInput(pImageData);
+	castFilt->Update();
+
+	using DuplicatorType = itk::ImageDuplicator<OutputImageType>;
+	DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	duplicator->SetInputImage(castFilt->GetOutput());
+	duplicator->Update();
+
+	return duplicator->GetOutput();
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
 class CADe::cePrivate
 {
 public:
-	using OutputImageType = itk::Image<float, 2>;
-	using ConvolutionImageType = itk::Image<double, 2>;
-	using InputImageType = OutputImageType;
 	using TemplateInfoType = std::pair<std::string, uint16_t>;
 	using InputPixelType = OutputImageType::InternalPixelType;
 
@@ -31,13 +72,28 @@ public:
 	bool processImage(std::string strImageFilePath);
 	bool verifyImageSize(InputImageType::Pointer& image, InputImageType::RegionType & region, 
 		std::string & strImagePath);
+
+	bool verifyKernelImageSize(InputImageType::Pointer& image, std::string& strKernelImagePath);
 	
 	std::pair<InputPixelType, InputPixelType>	getMinMax(InputImageType::Pointer pImage);
 
 	template <typename ImageType>
 	typename ImageType::Pointer					LoadImage(std::string strKernel);
 
-	InputImageType::RegionType	calculateDesiredOutputRegion(const InputImageType::RegionType& region);
+	InputImageType::RegionType		calculateDesiredOutputRegion(const InputImageType::RegionType& region);
+
+	bool	processKernel(const TemplateInfoType & info,
+		InputImageType::Pointer pImage,
+		InputImageType::RegionType& inputRegion,
+		InputImageType::RegionType& outputRegion
+	);
+
+	OutputImageType::Pointer	performConvolution(const TemplateInfoType& info,
+		InputImageType::Pointer pImage,
+		InputImageType::Pointer pKernelImage,
+		InputImageType::RegionType& inputRegion,
+		InputImageType::RegionType& outputRegion);
+
 public:
 	std::vector<TemplateInfoType>	m_infoTemplates;
 	std::vector<std::string>		m_imageFiles;
@@ -49,6 +105,9 @@ public:
 template <typename ImageType>
 typename ImageType::Pointer CADe::cePrivate::LoadImage(std::string strKernel)
 {
+	// This loads an image and rescales the pixel values by making the 
+	// minimum value of the loaded image 0.
+
 	using ReaderType = itk::ImageFileReader<ImageType>;
 
 	ReaderType::Pointer kernelReader = ReaderType::New();
@@ -113,17 +172,55 @@ bool CADe::cePrivate::verifyImageSize(InputImageType::Pointer& image,
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
+bool CADe::cePrivate::verifyKernelImageSize(InputImageType::Pointer& image,
+	std::string& strKernelImagePath)
+{
+	auto region = image->GetLargestPossibleRegion();
+
+	InputImageType::SizeType size = region.GetSize();
+
+	if ((size[0] < TEMPLATE_SIZE_MIN_X) || (size[1] < TEMPLATE_SIZE_MIN_X)) {
+
+		std::ostringstream sstream;
+
+		sstream << "ERROR: The template image ( " << strKernelImagePath << " ) is not readable or smaller than " << IMAGE_SIZE_X << " by " << IMAGE_SIZE_Y << ". \n";
+
+		m_StrErrorMessages += sstream.str();
+
+		return false;
+	}
+	else
+		return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
 bool CADe::cePrivate::processImage(std::string strImageFilePath)
 {
-	InputImageType::Pointer image = LoadImage<InputImageType>(strImageFilePath);
-
-	InputImageType::RegionType region = image->GetLargestPossibleRegion();
-	InputImageType::RegionType inputRegion = region;
-	
-	bool retVal = verifyImageSize(image, region,strImageFilePath);
+	bool retVal = fs::is_regular_file(strImageFilePath);
 
 	if (retVal) {
-		
+		InputImageType::Pointer image = LoadImage<InputImageType>(strImageFilePath);
+
+		InputImageType::RegionType region = image->GetLargestPossibleRegion();
+		InputImageType::RegionType inputRegion = region;
+
+		retVal = verifyImageSize(image, region, strImageFilePath);
+
+		if (retVal) {
+			InputImageType::RegionType outputRegion = calculateDesiredOutputRegion(inputRegion);
+
+			for (const auto& infoKernel : m_infoTemplates) {
+				retVal = processKernel(infoKernel, image, inputRegion, outputRegion);
+			}
+
+		}
+	}
+	else
+	{
+		std::ostringstream sstream;
+		sstream << "ERROR: Can not open the image file " << strImageFilePath << "\n";
+		m_StrErrorMessages += sstream.str();
 	}
 	
 	return retVal;
@@ -145,27 +242,95 @@ CADe::cePrivate::getMinMax(InputImageType::Pointer pImage)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-CADe::cePrivate::InputImageType::RegionType 
+InputImageType::RegionType 
 CADe::cePrivate::calculateDesiredOutputRegion(const InputImageType::RegionType& region)
 {
 	// The algorithm ignores a 160 pixel region on all sides of the image. This 
 	// function calculates the region to output.
 
-	CADe::cePrivate::InputImageType::RegionType retVal = region;
+	InputImageType::RegionType retVal = region;
 
 	auto lowerIndex = retVal.GetIndex();
 
-	lowerIndex[0] += 160;
-	lowerIndex[1] += 160;
+	lowerIndex[0] += IGNORE_SIZE_LEFT;
+	lowerIndex[1] += IGNORE_SIZE_TOP;
 
 	auto upperIndex = retVal.GetUpperIndex();
-	upperIndex[0] -= 160;
-	upperIndex[1] -= 160;
+	upperIndex[0] -= IGNORE_SIZE_LEFT;
+	upperIndex[1] -= IGNORE_SIZE_TOP;
 
 	retVal.SetIndex(lowerIndex);
 	retVal.SetUpperIndex(upperIndex);
 
 	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+bool CADe::cePrivate::processKernel(const TemplateInfoType& info, 
+	InputImageType::Pointer pImage, 
+	InputImageType::RegionType& inputRegion, 
+	InputImageType::RegionType& outputRegion)
+{
+	std::string strKernel = info.first;
+
+	bool retVal = fs::is_regular_file(strKernel);
+
+	if (retVal) {
+		InputImageType::Pointer pKernelImage = LoadImage<InputImageType>(strKernel);
+
+
+
+	}
+	else {
+		std::ostringstream sstream;
+		sstream << "ERROR: Can not open the kernel file " << strKernel << "\n";
+		m_StrErrorMessages += sstream.str();
+	}
+
+	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+OutputImageType::Pointer CADe::cePrivate::performConvolution(const TemplateInfoType& info, 
+	InputImageType::Pointer pImage, 
+	InputImageType::Pointer pKernelImage, 
+	InputImageType::RegionType& inputRegion, 
+	InputImageType::RegionType& outputRegion)
+{
+	using FilterType = itk::ConvolutionImageFilter<InputImageType, InputImageType, ConvolutionImageType>;
+
+	auto lowerIndex = outputRegion.GetIndex();
+
+	FilterType::Pointer convolutionFilter = FilterType::New();
+	convolutionFilter->NormalizeOn();
+	convolutionFilter->SetInput(pImage);
+	convolutionFilter->SetKernelImage(pKernelImage);
+
+	convolutionFilter->GetOutput()->SetRequestedRegion(inputRegion);
+
+	using PasteType = itk::PasteImageFilter<ConvolutionImageType, ConvolutionImageType>;
+
+	// The following creates the output convolution with the 160 pixel border.
+	ConvolutionImageType::Pointer blankCanvas = ConvolutionImageType::New();
+	blankCanvas->SetRegions(inputRegion);
+	blankCanvas->Allocate();
+	blankCanvas->FillBuffer(0.0);
+	blankCanvas->SetSpacing(pImage->GetSpacing());
+
+	PasteType::Pointer pasteImageFilter = PasteType::New();
+
+	pasteImageFilter->SetSourceImage(convolutionFilter->GetOutput());
+	pasteImageFilter->SetSourceRegion(convolutionFilter->GetOutput()->GetRequestedRegion());
+	pasteImageFilter->SetDestinationImage(blankCanvas);
+	pasteImageFilter->SetDestinationIndex(lowerIndex);
+
+	pasteImageFilter->Update();
+
+	// If we used double as the pixel type for the ConvolutionImageType we need to cast that to float. The 
+	// transformFinalOutputForFileWriting() will perform this conversion.
+	return transformFinalOutputForFileWriting<ConvolutionImageType, OutputImageType>(pasteImageFilter->GetOutput());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
