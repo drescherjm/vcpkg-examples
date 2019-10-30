@@ -23,6 +23,8 @@ const uint16_t TEMPLATE_SIZE_MIN_Y{ 3 };
 const uint16_t IGNORE_SIZE_TOP{ 160 };
 const uint16_t IGNORE_SIZE_LEFT{ 160 };
 
+const uint8_t   MAXIMUM_SCORES{ 10 };
+
 namespace fs = std::filesystem;
 using OutputImageType = itk::Image<float, 2>;
 using ConvolutionImageType = itk::Image<double, 2>;
@@ -65,10 +67,19 @@ typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImage
 class CADe::cePrivate
 {
 public:
+	cePrivate();
+public:
 	using TemplateInfoType = std::pair<std::string, uint16_t>;
 	using InputPixelType = OutputImageType::InternalPixelType;
 
+	enum TemplateType {
+		TT_UNKNOWN,
+		TT_SMALL,
+		TT_BIG
+	};
+
 public:
+	std::pair<bool,TemplateType> getTemplateType(const TemplateInfoType& info);
 	bool hasImages() const;
 	bool hasTemplates() const;
 	bool processImage(std::string strImageFilePath);
@@ -107,7 +118,15 @@ public:
 	std::vector<TemplateInfoType>	m_infoTemplates;
 	std::vector<std::string>		m_imageFiles;
 	std::string						m_StrErrorMessages;
+	uint8_t							m_nMaximumScores;
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+CADe::cePrivate::cePrivate() : m_nMaximumScores{MAXIMUM_SCORES}
+{
+
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -417,6 +436,25 @@ std::string CADe::cePrivate::getOutputFileName(const std::string& strImagePath, 
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
+std::pair<bool, CADe::cePrivate::TemplateType> CADe::cePrivate::getTemplateType(const TemplateInfoType& info)
+{
+	std::pair<bool, CADe::cePrivate::TemplateType> retVal{ false,TT_UNKNOWN };
+
+	if (info.second == 50) {
+		retVal.first = true;
+		retVal.second = TT_SMALL;
+	}
+
+	if (info.second == 100) {
+		retVal.first = true;
+		retVal.second = TT_BIG;
+	}
+
+	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
 CADe::CADe() : m_pPrivate{ std::make_unique<cePrivate>() }
 {
 
@@ -441,6 +479,13 @@ void CADe::addTemplate(std::string strPath, uint16_t nTemplateSize)
 void CADe::addImageFile(std::string strPath)
 {
 	m_pPrivate->m_imageFiles.emplace_back(strPath);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void CADe::setMaximumScores(uint8_t nScores)
+{
+	m_pPrivate->m_nMaximumScores = nScores;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

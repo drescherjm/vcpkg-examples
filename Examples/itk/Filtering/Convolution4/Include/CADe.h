@@ -20,6 +20,8 @@ public:
 	void addTemplate(std::string strPath, uint16_t nTemplateSize);
 	void addImageFile(std::string strPath);
 
+	void setMaximumScores(uint8_t nScores);
+
 	bool excute();
 
 	std::string getErrorMessages() const;
