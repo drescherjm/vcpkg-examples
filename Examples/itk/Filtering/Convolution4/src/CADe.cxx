@@ -9,6 +9,8 @@
 #include <itkConvolutionImageFilter.h>
 #include <itkPasteImageFilter.h>
 #include <itkCastImageFilter.h>
+#include "itkImageFileWriter.h"
+#include "itkTIFFImageIO.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,17 +84,24 @@ public:
 
 	InputImageType::RegionType		calculateDesiredOutputRegion(const InputImageType::RegionType& region);
 
-	bool	processKernel(const TemplateInfoType & info,
-		InputImageType::Pointer pImage,
-		InputImageType::RegionType& inputRegion,
-		InputImageType::RegionType& outputRegion
-	);
+	bool processKernel(const TemplateInfoType& info, 
+		const std::string& strImageFilePath, 
+		InputImageType::Pointer pImage, 
+		InputImageType::RegionType& inputRegion, 
+		InputImageType::RegionType& outputRegion);
 
 	OutputImageType::Pointer	performConvolution(const TemplateInfoType& info,
 		InputImageType::Pointer pImage,
 		InputImageType::Pointer pKernelImage,
 		InputImageType::RegionType& inputRegion,
 		InputImageType::RegionType& outputRegion);
+
+	bool	writeOutputFile(const TemplateInfoType& info, 
+		std::string strInputImage, 
+		OutputImageType::Pointer output);
+
+	std::string		getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath);
+	std::string		getFileNameNoPath(const std::string& strFilePath);
 
 public:
 	std::vector<TemplateInfoType>	m_infoTemplates;
@@ -159,7 +168,8 @@ bool CADe::cePrivate::verifyImageSize(InputImageType::Pointer& image,
 		
 		std::ostringstream sstream;
 
-		sstream << "ERROR: The image ( " << strImagePath << " ) is not readable or smaller than " << IMAGE_SIZE_X << " by " << IMAGE_SIZE_Y << ". \n";
+		sstream << "ERROR: The image ( " << strImagePath << " ) is not readable or smaller than " 
+			<< IMAGE_SIZE_X << " by " << IMAGE_SIZE_Y << ". \n";
 
 		m_StrErrorMessages += sstream.str();
 
@@ -183,7 +193,8 @@ bool CADe::cePrivate::verifyKernelImageSize(InputImageType::Pointer& image,
 
 		std::ostringstream sstream;
 
-		sstream << "ERROR: The template image ( " << strKernelImagePath << " ) is not readable or smaller than " << IMAGE_SIZE_X << " by " << IMAGE_SIZE_Y << ". \n";
+		sstream << "ERROR: The template image ( " << strKernelImagePath << " ) is not readable or smaller than " 
+			<< TEMPLATE_SIZE_MIN_X << " by " << TEMPLATE_SIZE_MIN_X << ". \n";
 
 		m_StrErrorMessages += sstream.str();
 
@@ -211,7 +222,7 @@ bool CADe::cePrivate::processImage(std::string strImageFilePath)
 			InputImageType::RegionType outputRegion = calculateDesiredOutputRegion(inputRegion);
 
 			for (const auto& infoKernel : m_infoTemplates) {
-				retVal = processKernel(infoKernel, image, inputRegion, outputRegion);
+				retVal = processKernel(infoKernel, strImageFilePath, image, inputRegion, outputRegion);
 			}
 
 		}
@@ -268,6 +279,7 @@ CADe::cePrivate::calculateDesiredOutputRegion(const InputImageType::RegionType& 
 /////////////////////////////////////////////////////////////////////////////////////////
 
 bool CADe::cePrivate::processKernel(const TemplateInfoType& info, 
+	const std::string & strImageFilePath,
 	InputImageType::Pointer pImage, 
 	InputImageType::RegionType& inputRegion, 
 	InputImageType::RegionType& outputRegion)
@@ -278,9 +290,12 @@ bool CADe::cePrivate::processKernel(const TemplateInfoType& info,
 
 	if (retVal) {
 		InputImageType::Pointer pKernelImage = LoadImage<InputImageType>(strKernel);
+		retVal = verifyKernelImageSize(pKernelImage,strKernel);
+		if (retVal) {
+			auto pOutputImage = performConvolution(info, pImage, pKernelImage, inputRegion, outputRegion);
 
-
-
+			retVal = writeOutputFile(info, strImageFilePath,pOutputImage);
+		}
 	}
 	else {
 		std::ostringstream sstream;
@@ -331,6 +346,73 @@ OutputImageType::Pointer CADe::cePrivate::performConvolution(const TemplateInfoT
 	// If we used double as the pixel type for the ConvolutionImageType we need to cast that to float. The 
 	// transformFinalOutputForFileWriting() will perform this conversion.
 	return transformFinalOutputForFileWriting<ConvolutionImageType, OutputImageType>(pasteImageFilter->GetOutput());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+bool CADe::cePrivate::writeOutputFile(const TemplateInfoType& info, std::string strInputImage, OutputImageType::Pointer output)
+{
+	bool retVal{ true };
+
+	using WriterType = itk::ImageFileWriter<OutputImageType>;
+	using TIFFIOType = itk::TIFFImageIO;
+
+	TIFFIOType::Pointer tiffIO = TIFFIOType::New();
+	
+	WriterType::Pointer writer = WriterType::New();
+	writer->SetFileName(getOutputFileName(strInputImage, info.first));
+	writer->SetInput(output);
+	writer->SetImageIO(tiffIO);
+
+	try
+	{
+		writer->Update();
+	}
+	catch (itk::ExceptionObject & error)
+	{
+		std::ostringstream sstream;
+
+		sstream << "Error: Could not write output file. " << error << "\n";
+
+		m_StrErrorMessages += sstream.str();
+
+		retVal = false;
+	}
+
+	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+std::string CADe::cePrivate::getFileNameNoPath(const std::string& strFilePath)
+{
+	fs::path path(strFilePath);
+
+	return path.stem().string();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+std::string CADe::cePrivate::getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath)
+{
+	std::string strImageName = getFileNameNoPath(strImagePath);
+	std::string strKernelName = getFileNameNoPath(strKernelPath);
+
+	std::string retVal = strImageName + "_" + strKernelName + ".tiff";
+
+	if (fs::exists(retVal)) {
+		for (uint16_t i = 0; i < 999; ++i) {
+			std::ostringstream fn;
+			fn << strImageName << '_' << strKernelName << '_' << std::setfill('0') << std::setw(3) << i << ".tiff";
+
+			if (!fs::exists(fn.str())) {
+				retVal = fn.str();
+				break;
+			}
+		}
+	}
+
+	return retVal;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
