@@ -164,8 +164,10 @@ bool CADe::cePrivate::processImage(std::string strImageFilePath)
 		if (retVal) {
 			InputImageType::RegionType outputRegion = calculateDesiredOutputRegion(inputRegion);
 
+			ScoreVector vecScores;
+
 			for (const auto& infoKernel : m_infoTemplates) {
-				retVal = processKernel(infoKernel, strImageFilePath, image, inputRegion, outputRegion);
+				retVal = processKernel(infoKernel, strImageFilePath, image, inputRegion, outputRegion,vecScores);
 			}
 
 		}
