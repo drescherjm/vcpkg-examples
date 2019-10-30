@@ -6,8 +6,10 @@
 #include "CADe.h"
 
 #include <cstdint>
+#include <vector>
 #include <filesystem>
 #include <itkImage.h>
+#include "CADe_Score.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +39,8 @@ public:
 	using TemplateInfoType = std::pair<std::string, uint16_t>;
 	using InputPixelType = OutputImageType::InternalPixelType;
 
+	using ScoreVector = std::vector<CADeScore>;
+
 	enum TemplateType {
 		TT_UNKNOWN,
 		TT_SMALL,
@@ -64,7 +68,8 @@ public:
 		const std::string& strImageFilePath,
 		InputImageType::Pointer pImage,
 		InputImageType::RegionType& inputRegion,
-		InputImageType::RegionType& outputRegion);
+		InputImageType::RegionType& outputRegion,
+		ScoreVector & vecScores);
 
 	OutputImageType::Pointer	performConvolution(const TemplateInfoType& info,
 		InputImageType::Pointer pImage,

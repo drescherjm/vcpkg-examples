@@ -225,7 +225,8 @@ bool CADe::cePrivate::processKernel(const TemplateInfoType& info,
 	const std::string& strImageFilePath,
 	InputImageType::Pointer pImage,
 	InputImageType::RegionType& inputRegion,
-	InputImageType::RegionType& outputRegion)
+	InputImageType::RegionType& outputRegion,
+	ScoreVector & vecScores)
 {
 	std::string strKernel = info.first;
 
@@ -376,3 +377,5 @@ std::pair<bool, CADe::cePrivate::TemplateType> CADe::cePrivate::getTemplateType(
 
 	return retVal;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////

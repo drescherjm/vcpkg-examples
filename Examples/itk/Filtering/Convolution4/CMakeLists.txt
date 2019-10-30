@@ -17,6 +17,7 @@ set (LOCAL_PROJECT_NAME_HEADER_FILES
 	 Include/Convolution4.h 
 	 Include/CADe.h
 	 Include/CADe_Private.h
+	 Include/CADe_Score.h
 )
 
 ################################################################################
