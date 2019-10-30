@@ -5,7 +5,23 @@ include(${ITK_USE_FILE})
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(${LOCAL_PROJECT_NAME} MACOSX_BUNDLE src/Convolution4.cxx  src/CADe.cxx Include/Convolution4.h Include/CADe.h)
+################################################################################
+
+set (LOCAL_PROJECT_NAME_SOURCE_FILES
+	src/Convolution4.cxx  
+	src/CADe.cxx
+	src/CADe_Private.cxx
+)
+
+set (LOCAL_PROJECT_NAME_HEADER_FILES
+	 Include/Convolution4.h 
+	 Include/CADe.h
+	 Include/CADe_Private.h
+)
+
+################################################################################
+
+add_executable(${LOCAL_PROJECT_NAME} MACOSX_BUNDLE ${LOCAL_PROJECT_NAME_SOURCE_FILES} ${LOCAL_PROJECT_NAME_HEADER_FILES})
 
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE Include)
 
