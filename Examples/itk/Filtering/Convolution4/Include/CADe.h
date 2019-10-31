@@ -21,6 +21,7 @@ public:
 	void addImageFile(std::string strPath);
 
 	void setMaximumScores(uint8_t nScores);
+	void enableDebugMode(bool bDebug);
 
 	bool excute();
 

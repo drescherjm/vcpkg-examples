@@ -98,6 +98,7 @@ public:
 	std::vector<std::string>		m_imageFiles;
 	std::string						m_StrErrorMessages;
 	uint8_t							m_nMaximumScores;
+	bool							m_bDebugMode;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
