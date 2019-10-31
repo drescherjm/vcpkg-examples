@@ -270,8 +270,7 @@ bool CADe::cePrivate::processKernel(const TemplateInfoType& info,
 #ifdef ENABLE_QUICKVIEW
 					QuickView viewer;
 					viewer.AddImage<InputImageType>(pImage, true, itksys::SystemTools::GetFilenameName(strImageFilePath));
-					viewer.AddImage<InputImageType>(pOutputImage, true, "Output");
-					//viewer.AddImage<InputImageType>(pasteImageFilter->GetOutput(), true, itksys::SystemTools::GetFilenameName(strKernel));
+					viewer.AddImage<InputImageType>(pOutputImage, true, std::string("Output for ") + itksys::SystemTools::GetFilenameName(strKernel));
 					viewer.SetViewPortSize(955);
 					viewer.Visualize();
 #endif
@@ -308,7 +307,7 @@ OutputImageType::Pointer CADe::cePrivate::performConvolution(const TemplateInfoT
 	convolutionFilter->SetInput(pImage);
 	convolutionFilter->SetKernelImage(pKernelImage);
 
-	convolutionFilter->GetOutput()->SetRequestedRegion(inputRegion);
+	convolutionFilter->GetOutput()->SetRequestedRegion(outputRegion);
 
 	using PasteType = itk::PasteImageFilter<ConvolutionImageType, ConvolutionImageType>;
 

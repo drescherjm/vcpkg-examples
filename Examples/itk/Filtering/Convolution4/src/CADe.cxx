@@ -40,7 +40,7 @@ void CADe::setMaximumScores(uint8_t nScores)
 
 void CADe::enableDebugMode(bool bDebug)
 {
-
+	m_pPrivate->m_bDebugMode = bDebug;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
