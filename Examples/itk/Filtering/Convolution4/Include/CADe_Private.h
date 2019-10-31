@@ -77,18 +77,22 @@ public:
 		InputImageType::RegionType& inputRegion,
 		InputImageType::RegionType& outputRegion);
 
-
 	bool	calculateScores(const TemplateInfoType& info,
 		OutputImageType::Pointer outputImage,
 		ScoreVector& vecScores);
 
-	bool	writeOutputFile(const TemplateInfoType& info,
+	bool	writeScoreOutputImageFile(const TemplateInfoType& info,
 		std::string strInputImage,
 		OutputImageType::Pointer output);
 
 	std::string		getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath);
 	std::string		getFileNameNoPath(const std::string& strFilePath);
 
+	void setPixel(OutputImageType* pImage, const OutputImageType::RegionType& region, 
+		int nX, int nY, double fColor) const;
+
+	void drawFilledCircleInImage(OutputImageType* pImage, 
+		int xPos, int yPos, int nRadius, double fColor, double fCenterColor) const;
 public:
 	std::vector<TemplateInfoType>	m_infoTemplates;
 	std::vector<std::string>		m_imageFiles;

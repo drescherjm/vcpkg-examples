@@ -11,6 +11,7 @@
 #include <itkCastImageFilter.h>
 #include "itkImageFileWriter.h"
 #include "itkTIFFImageIO.h"
+#include "itkMinimumMaximumImageCalculator.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,7 +44,6 @@ typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImage
 
 	return duplicator->GetOutput();
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -240,7 +240,7 @@ bool CADe::cePrivate::processKernel(const TemplateInfoType& info,
 		if (retVal) {
 			auto pOutputImage = performConvolution(info, pImage, pKernelImage, inputRegion, outputRegion);
 
-			retVal = writeOutputFile(info, strImageFilePath, pOutputImage);
+			retVal = writeScoreOutputImageFile(info, strImageFilePath, pOutputImage);
 			if (retVal) {
 				retVal = calculateScores(info, pOutputImage, vecScores);
 			}
@@ -299,7 +299,8 @@ OutputImageType::Pointer CADe::cePrivate::performConvolution(const TemplateInfoT
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-bool CADe::cePrivate::writeOutputFile(const TemplateInfoType& info, std::string strInputImage, OutputImageType::Pointer output)
+bool CADe::cePrivate::writeScoreOutputImageFile(const TemplateInfoType& info, std::string strInputImage, 
+	OutputImageType::Pointer output)
 {
 	bool retVal{ true };
 
@@ -385,9 +386,109 @@ std::pair<bool, CADe::cePrivate::TemplateType> CADe::cePrivate::getTemplateType(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
+void CADe::cePrivate::setPixel(OutputImageType* pImage, const OutputImageType::RegionType& region, int nX, int nY, double fColor) const
+{
+	OutputImageType::IndexType nPos;
+	nPos[0] = nX;
+	nPos[1] = nY;
+	if (region.IsInside(nPos)) {
+		pImage->SetPixel(nPos, fColor);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void CADe::cePrivate::drawFilledCircleInImage(OutputImageType* pImage, int xPos, int yPos, int nRadius, 
+	double fColor, double fCenterColor) const
+{
+
+	OutputImageType::RegionType outputRegion = pImage->GetLargestPossibleRegion();
+
+	int x0 = xPos;
+	int y0 = yPos;
+
+	int x = nRadius;
+	int y = 0;
+	int xChange = 1 - (nRadius << 1);
+	int yChange = 0;
+	int radiusError = 0;
+
+	while (x >= y)
+	{
+		for (int i = x0 - x; i <= x0 + x; i++)
+		{
+			setPixel(pImage, outputRegion, i, y0 + y, fColor);
+			setPixel(pImage, outputRegion, i, y0 - y, fColor);
+		}
+		for (int i = x0 - y; i <= x0 + y; i++)
+		{
+			setPixel(pImage, outputRegion, i, y0 + x, fColor);
+			setPixel(pImage, outputRegion, i, y0 - x, fColor);
+		}
+
+		y++;
+		radiusError += yChange;
+		yChange += 2;
+		if (((radiusError << 1) + xChange) > 0)
+		{
+			x--;
+			radiusError += xChange;
+			xChange += 2;
+		}
+	}
+
+	if (fColor != fCenterColor) {
+		setPixel(pImage, outputRegion, x0, y0, fCenterColor);
+	}
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
 bool CADe::cePrivate::calculateScores(const TemplateInfoType& info, OutputImageType::Pointer outputImage, ScoreVector& vecScores)
 {
-	return false;
+	using ImageCalculatorFilterType = itk::MinimumMaximumImageCalculator<OutputImageType>;
+	ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+	imageCalculatorFilter->SetImage(outputImage);
+
+	auto res = getTemplateType(info);
+
+	bool retVal = res.first;
+
+	if (retVal) {
+
+		int nRadius = 0;
+
+		switch (res.second)
+		{
+		case TT_SMALL:
+			nRadius = 100;
+		break;
+		case TT_BIG:
+			nRadius = 200;
+		break;
+		default:
+			return false;
+			break;
+		}
+		
+		for (int i = 0; i < m_nMaximumScores; ++i) {
+			imageCalculatorFilter->Compute();
+
+			OutputImageType::IndexType maximumLocation = imageCalculatorFilter->GetIndexOfMaximum();
+			auto nMaximum = imageCalculatorFilter->GetMaximum();
+
+			if (nMaximum <= 2) {
+				break;
+			}
+
+			vecScores.emplace_back(nMaximum, maximumLocation[0], maximumLocation[1], info.second);
+
+			drawFilledCircleInImage(outputImage, maximumLocation[0], maximumLocation[1], nRadius, 0.0, 1.0);
+		}
+	}
+
+	return retVal;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
