@@ -22,7 +22,10 @@ const uint16_t TEMPLATE_SIZE_MIN_Y{ 3 };
 const uint16_t IGNORE_SIZE_TOP{ 160 };
 const uint16_t IGNORE_SIZE_LEFT{ 160 };
 
-const uint8_t   MAXIMUM_SCORES{ 10 };
+const uint8_t   MAXIMUM_SCORES_PER_TEMPLATE{ 10 };
+const uint8_t   MAXIMUM_SCORES_PER_IMAGE{ 10 };
+
+const uint16_t MINIMUM_DISTANCE_BETWEEN_FINAL_SCORES{ 150 };
 
 namespace fs = std::filesystem;
 using OutputImageType = itk::Image<float, 2>;
@@ -85,7 +88,11 @@ public:
 		std::string strInputImage,
 		OutputImageType::Pointer output);
 
-	std::string		getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath);
+	bool	writeScoreOutputCSVFile(std::string strInputImage, const ScoreVector& vecScores);
+
+	std::string		getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath, 
+		const std::string strExtension);
+
 	std::string		getFileNameNoPath(const std::string& strFilePath);
 
 	void setPixel(OutputImageType* pImage, const OutputImageType::RegionType& region, 
@@ -93,12 +100,17 @@ public:
 
 	void drawFilledCircleInImage(OutputImageType* pImage, 
 		int xPos, int yPos, int nRadius, double fColor, double fCenterColor) const;
+
+	bool	calculateFinalImageScores(ScoreVector& vecScores);
+
 public:
 	std::vector<TemplateInfoType>	m_infoTemplates;
 	std::vector<std::string>		m_imageFiles;
 	std::string						m_StrErrorMessages;
-	uint8_t							m_nMaximumScores;
+	uint8_t							m_nMaximumScoresPerTemplate;
+	uint8_t							m_nMaximumScoresPerImage;
 	bool							m_bDebugMode;
+	bool							m_bWriteAfterScoreDebugImage;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////

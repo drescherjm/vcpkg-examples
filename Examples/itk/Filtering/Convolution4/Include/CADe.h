@@ -20,7 +20,8 @@ public:
 	void addTemplate(std::string strPath, uint16_t nTemplateSize);
 	void addImageFile(std::string strPath);
 
-	void setMaximumScores(uint8_t nScores);
+	void setMaximumScoresPerTemplate(uint8_t nScores);
+	void setMaximumScoresPerImage(uint8_t nScores);
 	void enableDebugMode(bool bDebug);
 
 	bool excute();

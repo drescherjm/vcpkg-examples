@@ -30,6 +30,7 @@
 #include <itkImageFileWriter.h>
 #include <itkTIFFImageIO.h>
 #include <itkMinimumMaximumImageCalculator.h>
+#include <fstream>
 
 #ifdef ENABLE_QUICKVIEW
 #include <QuickView.h>
@@ -69,7 +70,9 @@ typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImage
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-CADe::cePrivate::cePrivate() : m_nMaximumScores{ MAXIMUM_SCORES }, m_bDebugMode{false}
+CADe::cePrivate::cePrivate() : m_nMaximumScoresPerTemplate{ MAXIMUM_SCORES_PER_TEMPLATE }, 
+m_nMaximumScoresPerImage{ MAXIMUM_SCORES_PER_IMAGE },
+m_bDebugMode{false}, m_bWriteAfterScoreDebugImage{true}
 {
 
 }
@@ -195,6 +198,13 @@ bool CADe::cePrivate::processImage(std::string strImageFilePath)
 				}
 			}
 
+			if (retVal) {
+				retVal = calculateFinalImageScores(vecScores);
+				if (retVal) {
+					retVal = writeScoreOutputCSVFile(strImageFilePath, vecScores);
+				}
+			}
+
 		}
 	}
 	else
@@ -281,6 +291,18 @@ bool CADe::cePrivate::processKernel(const TemplateInfoType& info,
 				}
 
 				retVal = calculateScores(info, pOutputImage, vecScores);
+
+
+				if (retVal && m_bWriteAfterScoreDebugImage) {
+
+					TemplateInfoType tyTemp = info;
+
+					// Hack to append _AfterScore to the base name of the output image file.
+					tyTemp.first = getFileNameNoPath(info.first);
+					tyTemp.first += "_AfterScore";
+
+					writeScoreOutputImageFile(tyTemp, strImageFilePath, pOutputImage);
+				}
 			}
 		}
 	}
@@ -348,7 +370,7 @@ bool CADe::cePrivate::writeScoreOutputImageFile(const TemplateInfoType& info, st
 	TIFFIOType::Pointer tiffIO = TIFFIOType::New();
 
 	WriterType::Pointer writer = WriterType::New();
-	writer->SetFileName(getOutputFileName(strInputImage, info.first));
+	writer->SetFileName(getOutputFileName(strInputImage, info.first,".tiff"));
 	writer->SetInput(output);
 	writer->SetImageIO(tiffIO);
 
@@ -381,17 +403,18 @@ std::string CADe::cePrivate::getFileNameNoPath(const std::string& strFilePath)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-std::string CADe::cePrivate::getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath)
+std::string CADe::cePrivate::getOutputFileName(const std::string& strImagePath, const std::string& strKernelPath,
+	const std::string strExtension)
 {
 	std::string strImageName = getFileNameNoPath(strImagePath);
 	std::string strKernelName = getFileNameNoPath(strKernelPath);
 
-	std::string retVal = strImageName + "_" + strKernelName + ".tiff";
+	std::string retVal = strImageName + "_" + strKernelName + strExtension;
 
 	if (fs::exists(retVal)) {
 		for (uint16_t i = 0; i < 999; ++i) {
 			std::ostringstream fn;
-			fn << strImageName << '_' << strKernelName << '_' << std::setfill('0') << std::setw(3) << i << ".tiff";
+			fn << strImageName << '_' << strKernelName << '_' << std::setfill('0') << std::setw(3) << i << strExtension;
 
 			if (!fs::exists(fn.str())) {
 				retVal = fn.str();
@@ -510,7 +533,7 @@ bool CADe::cePrivate::calculateScores(const TemplateInfoType& info, OutputImageT
 			break;
 		}
 		
-		for (int i = 0; i < m_nMaximumScores; ++i) {
+		for (int i = 0; i < m_nMaximumScoresPerTemplate; ++i) {
 			imageCalculatorFilter->Compute();
 
 			OutputImageType::IndexType maximumLocation = imageCalculatorFilter->GetIndexOfMaximum();
@@ -530,6 +553,85 @@ bool CADe::cePrivate::calculateScores(const TemplateInfoType& info, OutputImageT
 		sstream << "ERROR: The template image ( " << info.first << " ) has an unsupported radius size: " << info.second << "\n";
 
 		m_StrErrorMessages += sstream.str();
+	}
+
+	return retVal;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+bool CADe::cePrivate::calculateFinalImageScores(ScoreVector& vecScores)
+{
+	bool retVal = !vecScores.empty();
+
+	if (retVal) {
+
+		ScoreVector vecToProcss;
+		vecToProcss.reserve(m_nMaximumScoresPerImage);
+
+		vecToProcss.swap(vecScores);
+
+		std::sort(vecToProcss.begin(), vecToProcss.end(), [](const CADeScore& s1, const CADeScore& s2) { return s1.m_fScore > s2.m_fScore; });
+
+		for (const auto& item : vecToProcss) {
+			if (vecScores.empty()) {
+				// Put the highest scored item in the vector.
+				vecScores.emplace_back(item);
+			}
+			else {
+				using PointType = itk::Point<uint16_t, 2>;
+
+				PointType p0;
+				p0[0] = item.m_nX;
+				p0[1] = item.m_nY;
+
+				bool bAdd = true;
+
+				for (const auto& higherScoredItem : vecScores) {
+					PointType p1;
+					p1[0] = higherScoredItem.m_nX;
+					p1[1] = higherScoredItem.m_nY;
+
+					bAdd = (p0.EuclideanDistanceTo(p1) >= MINIMUM_DISTANCE_BETWEEN_FINAL_SCORES);
+					if (!bAdd) {
+						break;
+					}
+				}
+
+				if (bAdd) {
+					vecScores.emplace_back(item);
+				}
+
+				if (vecScores.size() >= m_nMaximumScoresPerImage) {
+					break;
+				}
+
+			}
+		}
+
+	}
+	return !vecScores.empty();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+bool CADe::cePrivate::writeScoreOutputCSVFile(std::string strInputImage, const ScoreVector& vecScores)
+{
+	bool retVal = !vecScores.empty();
+	
+	if (retVal) {
+
+		std::string strOutputFile = getOutputFileName(strInputImage, "CADe", ".csv");
+		
+		std::ofstream output(strOutputFile);
+
+		output << "Score, x, y, Template Size \n";
+
+		for (const auto& score : vecScores) {
+			output << score.m_fScore << ", " << score.m_nX << ", " << score.m_nY << ", " << score.m_nTemplateSize << "\n";
+		}
+
+		output.flush();
 	}
 
 	return retVal;

@@ -31,9 +31,16 @@ void CADe::addImageFile(std::string strPath)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void CADe::setMaximumScores(uint8_t nScores)
+void CADe::setMaximumScoresPerTemplate(uint8_t nScores)
 {
-	m_pPrivate->m_nMaximumScores = nScores;
+	m_pPrivate->m_nMaximumScoresPerTemplate = nScores;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void CADe::setMaximumScoresPerImage(uint8_t nScores)
+{
+	m_pPrivate->m_nMaximumScoresPerImage = nScores;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
