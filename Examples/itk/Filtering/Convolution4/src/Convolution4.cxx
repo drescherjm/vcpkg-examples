@@ -25,6 +25,8 @@ int main(int argc, char* argv[])
 	cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig12_template.tiff)", 12);
 	
 	cade.enableDebugMode(true);
-	cade.excute();
+	if (!cade.excute()) {
+		std::cerr << cade.getErrorMessages() << std::endl;
+	}
 }
 

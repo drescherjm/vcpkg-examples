@@ -190,6 +190,9 @@ bool CADe::cePrivate::processImage(std::string strImageFilePath)
 
 			for (const auto& infoKernel : m_infoTemplates) {
 				retVal = processKernel(infoKernel, strImageFilePath, image, inputRegion, outputRegion,vecScores);
+				if (!retVal) {
+					break;
+				}
 			}
 
 		}
@@ -521,6 +524,12 @@ bool CADe::cePrivate::calculateScores(const TemplateInfoType& info, OutputImageT
 
 			drawFilledCircleInImage(outputImage, maximumLocation[0], maximumLocation[1], nRadius, 0.0, 1.0);
 		}
+	}
+	else {
+		std::ostringstream sstream;
+		sstream << "ERROR: The template image ( " << info.first << " ) has an unsupported radius size: " << info.second << "\n";
+
+		m_StrErrorMessages += sstream.str();
 	}
 
 	return retVal;
