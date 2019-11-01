@@ -26,6 +26,11 @@ int main(int argc, char* argv[])
 			("include-path,I", po::value< std::vector<std::string> >(),	"include path")
 			("input-file", po::value< std::vector<std::string> >()->multitoken()->composing(), "input file")
 			("config", po::value<std::string>(), "Config file")
+			
+			// See https://www.boost.org/doc/libs/1_71_0/doc/html/boost/program_options/bool_switch.html
+			("overwrite,o", po::bool_switch()->default_value(true), "enable file overwrite - can't turn this off") 
+			("test,t", po::value<bool>()->zero_tokens()->default_value(true), "enable test");
+
 		;
 		
 		po::variables_map vm;
@@ -52,6 +57,12 @@ int main(int argc, char* argv[])
 
 			//std::copy(inputFiles.begin(), inputFiles.end(), std::ostream_iterator<std::string>(std::cout, ", "));
 		}
+
+		std::boolalpha(std::cout);  // display true and false for bool
+		std::cout << "overwrite is: " << vm["overwrite"].as<bool>() << std::endl;
+
+		std::boolalpha(std::cout);  // display true and false for bool
+		std::cout << "test is: " << vm["test"].as<bool>() << std::endl;
 
 	}
 	catch (std::exception & e) {
