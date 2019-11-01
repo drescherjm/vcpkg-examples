@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
 
     // Add new options/flags here
 	bool my_flag = true;
-	app.add_flag("-f", my_flag, "Optional description");
+	app.add_flag("--flag,!--no-flag", my_flag, "Optional description");
 	
     CLI11_PARSE(app, argc, argv);
 
