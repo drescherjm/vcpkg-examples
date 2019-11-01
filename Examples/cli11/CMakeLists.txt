@@ -1,0 +1,10 @@
+
+option( BUILD_CLI11_EXAMPLES 		"Build the cli11 examples." ON)
+
+if(BUILD_BOOST_EXAMPLES)
+	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+	FOREACH(subdir ${SUBDIRS})
+		ADD_SUBDIRECTORY(${subdir})
+	ENDFOREACH()
+endif()
