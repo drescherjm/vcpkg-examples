@@ -3,6 +3,8 @@ myproject(Convolution4)
 find_package(ITK REQUIRED )
 include(${ITK_USE_FILE})
 
+find_package(CLI11 CONFIG REQUIRED)
+
 set(CMAKE_CXX_STANDARD 17)
 
 ################################################################################
@@ -36,6 +38,6 @@ endif()
 
 target_link_directories(${LOCAL_PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:X:/vcpkg/installed/x64-windows/debug/lib> $<$<CONFIG:Release>:X:/vcpkg/installed/x64-windows/lib>)
 
-target_link_libraries(${LOCAL_PROJECT_NAME} ${ITK_MODULES})
+target_link_libraries(${LOCAL_PROJECT_NAME} ${ITK_MODULES} CLI11::CLI11)
 
 set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER itk/Filtering)
