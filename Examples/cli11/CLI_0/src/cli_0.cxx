@@ -8,9 +8,10 @@ int main(int argc, char **argv) {
 	bool my_flag = true;
 	app.add_flag("--flag,!--no-flag", my_flag, "Optional description");
 
-	std::vector<std::string> imageFiles;
+	std::vector<std::string> imageFiles, templateFiles;
 
 	app.add_option("--image", imageFiles, "Image Files")->check(CLI::ExistingFile);
+	app.add_option("--template", templateFiles, "Template Files")->check(CLI::ExistingFile);
 	
     CLI11_PARSE(app, argc, argv);
 
