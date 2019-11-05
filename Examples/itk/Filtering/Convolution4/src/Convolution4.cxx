@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		cade.enableDebugMode(bDebug);
+		cade.enableDebugVisualizationMode(bDebug);
 		if (!cade.excute()) {
 			std::cerr << cade.getErrorMessages() << std::endl;
 		}
@@ -84,10 +84,3 @@ int main(int argc, char* argv[])
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-
-// 		cade.addImageFile(R"(C:\Users\jdrescher\Box\Ingrid\BG\BG_120.tiff)");
-// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr50\sig50_template.tiff)",50);
-// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr100\sig100_template.tiff)", 100);
-
-// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr25\sig25_template.tiff)", 100);
-// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig12_template.tiff)", 50);

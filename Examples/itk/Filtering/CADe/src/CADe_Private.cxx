@@ -72,7 +72,7 @@ typename OutputType::Pointer transformFinalOutputForFileWriting(ConvolutionImage
 
 CADe::cePrivate::cePrivate() : m_nMaximumScoresPerTemplate{ MAXIMUM_SCORES_PER_TEMPLATE }, 
 m_nMaximumScoresPerImage{ MAXIMUM_SCORES_PER_IMAGE },
-m_bDebugMode{false}, m_bWriteAfterScoreDebugImage{true}
+m_bDebugVisualizationMode{false}, m_bWriteAfterScoreDebugImage{true}
 {
 
 }
@@ -226,7 +226,10 @@ CADe::cePrivate::getMinMax(InputImageType::Pointer pImage)
 	StatsType::Pointer stats = StatsType::New();
 	stats->SetInput(pImage);
 	stats->Update();
+
+#ifdef DEBUG
 	stats->Print(std::cout);
+#endif
 
 	return { stats->GetMinimum(),stats->GetMaximum() };
 }
@@ -278,7 +281,7 @@ bool CADe::cePrivate::processKernel(const TemplateInfoType& info,
 			retVal = writeScoreOutputImageFile(info, strImageFilePath, pOutputImage);
 			if (retVal) {
 
-				if (m_bDebugMode) {
+				if (m_bDebugVisualizationMode) {
 
 #ifdef ENABLE_QUICKVIEW
 					QuickView viewer;

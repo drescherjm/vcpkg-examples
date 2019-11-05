@@ -22,7 +22,8 @@ public:
 
 	void setMaximumScoresPerTemplate(uint8_t nScores);
 	void setMaximumScoresPerImage(uint8_t nScores);
-	void enableDebugMode(bool bDebug);
+	void enableDebugVisualizationMode(bool bDebug);
+	void generateAfterScoreDebuggingImage(bool bGenerate);
 
 	bool excute();
 

@@ -109,7 +109,7 @@ public:
 	std::string						m_StrErrorMessages;
 	uint8_t							m_nMaximumScoresPerTemplate;
 	uint8_t							m_nMaximumScoresPerImage;
-	bool							m_bDebugMode;
+	bool							m_bDebugVisualizationMode;
 	bool							m_bWriteAfterScoreDebugImage;
 };
 

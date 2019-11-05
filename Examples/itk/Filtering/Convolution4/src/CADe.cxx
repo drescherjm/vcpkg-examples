@@ -45,7 +45,7 @@ void CADe::setMaximumScoresPerImage(uint8_t nScores)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void CADe::enableDebugMode(bool bDebug)
+void CADe::enableDebugVisualizationMode(bool bDebug)
 {
 	m_pPrivate->m_bDebugMode = bDebug;
 }
