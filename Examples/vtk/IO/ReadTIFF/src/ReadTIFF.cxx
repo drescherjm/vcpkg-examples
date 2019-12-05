@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
     vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
   imageViewer->SetColorLevel(32000);
+  imageViewer->SetColorWindow(512);
   imageViewer->SetupInteractor(renderWindowInteractor);
   imageViewer->Render();
   imageViewer->GetRenderer()->ResetCamera();
