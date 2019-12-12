@@ -1,4 +1,4 @@
-myproject(Convolution4)
+myproject(CADe)
 
 find_package(ITK REQUIRED )
 include(${ITK_USE_FILE})
@@ -10,13 +10,13 @@ set(CMAKE_CXX_STANDARD 17)
 ################################################################################
 
 set (LOCAL_PROJECT_NAME_SOURCE_FILES
-	src/Convolution4.cxx  
+	src/CADe_main.cxx  
 	src/CADe.cxx
 	src/CADe_Private.cxx
 )
 
 set (LOCAL_PROJECT_NAME_HEADER_FILES
-	 Include/Convolution4.h 
+	 Include/CADe_main.h 
 	 Include/CADe.h
 	 Include/CADe_Private.h
 	 Include/CADe_Score.h

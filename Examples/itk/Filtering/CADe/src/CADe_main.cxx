@@ -19,11 +19,13 @@ int main(int argc, char* argv[])
 
 	std::vector<uint16_t> vecSmallTemplateSize{ SMALL_TEMPLATE_SIZE }, vecLargeTemplateSize{ LARGE_TEMPLATE_SIZE };
 
-	bool	bDebug = false;
+	bool	bVisualize = false;
+	bool	bDebug = true;
 
 	app.set_config("--config");
 
-	app.add_flag("--debug", bDebug, "Create image files for debugging the result.");
+	app.add_flag("--visualize", bVisualize, "Visualize the resultant images.");
+	app.add_flag("--debug,!--no-debug", bDebug, "Generate debugging image with center points selected.");
 	app.add_option("--image,i", imageFiles, "Image Files")->check(CLI::ExistingFile)->required(true)->ignore_case(true);
 	app.add_option("--smallTemplate,--st", smallTemplateFiles, "Small Template Files")->check(CLI::ExistingFile)->ignore_case(true);
 	app.add_option("--smallTemplateSize", vecSmallTemplateSize, "Sizes of the small templates");
@@ -74,7 +76,9 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		cade.enableDebugVisualizationMode(bDebug);
+		cade.enableDebugVisualizationMode(bVisualize);
+		cade.generateAfterScoreDebuggingImage(bDebug);
+
 		if (!cade.excute()) {
 			std::cerr << cade.getErrorMessages() << std::endl;
 		}
@@ -84,3 +88,10 @@ int main(int argc, char* argv[])
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
+
+// 		cade.addImageFile(R"(C:\Users\jdrescher\Box\Ingrid\BG\BG_120.tiff)");
+// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr50\sig50_template.tiff)",50);
+// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr100\sig100_template.tiff)", 100);
+
+// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr25\sig25_template.tiff)", 100);
+// 		cade.addTemplate(R"(J:\images\clean\Procesed Images\Breast\2019_11_CADE\Templates\sigr12\sig12_template.tiff)", 50);
