@@ -21,6 +21,8 @@ include(${PROJECT_SOURCE_DIR}/CMake/Scripts/GetCompilerVersion.cmake)
 include(${PROJECT_SOURCE_DIR}/CMake/Scripts/NamingConvention.cmake)
 include(${PROJECT_SOURCE_DIR}/CMake/Scripts/SetupProject.cmake)
 include(${PROJECT_SOURCE_DIR}/CMake/Scripts/HelperMacros.cmake)
+include(${PROJECT_SOURCE_DIR}/CMake/Scripts/SupportQt.cmake)
+
 
 # if(DEFINED ENV{CMAKE_TOOLCHAIN_FILE} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   # set(CMAKE_TOOLCHAIN_FILE "$ENV{CMAKE_TOOLCHAIN_FILE}" CACHE STRING "")

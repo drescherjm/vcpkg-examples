@@ -1,5 +1,15 @@
 myproject(QGraphicsView0)
 
+#set(CMAKE_AUTOMOC ON)
+#find_package(Qt5 REQUIRED COMPONENTS core widgets)
+
+
+set (QT_LIBRARIES Qt5::Core Qt5::Network Qt5::Sql Qt5::Widgets Qt5::Gui Qt5::WinMain Qt5::Xml Qt5::PrintSupport)
+set (QT_MODULES Qt5::Core Qt5::Network Qt5::Sql Qt5::Widgets Qt5::Gui Qt5::WinMain Qt5::Xml Qt5::PrintSupport)
+set (QT_PLATFORM_MODULES Qt5::QWindowsIntegrationPlugin)
+find_qt5_packages()
+
+
 # set your files and resources here  
 set(${LOCAL_PROJECT_NAME}_SRCS 
 	./src/main.cxx
@@ -38,7 +48,7 @@ SOURCE_GROUP("Generated" FILES
   ${RCS_SOURCES}
 )
 
-INCLUDE_DIRECTORIES(Include
+target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE ${LOCAL_PROJECT_SOURCE_DIR}/Include
 	${LOCAL_PROJECT_BINARY_DIR}
 	)
   
