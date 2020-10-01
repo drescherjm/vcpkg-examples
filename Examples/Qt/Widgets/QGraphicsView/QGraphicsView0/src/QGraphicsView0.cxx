@@ -19,13 +19,13 @@ QGraphicsView0::QGraphicsView0(QWidget *parent) :
 
     QBrush greenBrush(Qt::green);
     QBrush blueBrush(Qt::blue);
-    QPen outlinePen(Qt::black);
+    QPen outlinePen(Qt::white);
     outlinePen.setWidth(2);
 
     rectangle = scene->addRect(100, 0, 80, 100, outlinePen, blueBrush);
 
     // addEllipse(x,y,w,h,pen,brush)
-    ellipse = scene->addEllipse(0, 300, 300, 60, outlinePen, greenBrush);
+    ellipse = scene->addEllipse(0, 300, 60, 60, outlinePen);
 
     ellipse->setFlags(QGraphicsItem::ItemIsMovable);
 
