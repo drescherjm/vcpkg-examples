@@ -29,14 +29,15 @@ set(${LOCAL_PROJECT_NAME}_MOC_HDRS
 )
 
 # and finally an resource file
-set( ${LOCAL_PROJECT_NAME}_RSC 
+set( ${LOCAL_PROJECT_NAME}_RCS 
+	./rc/QGraphicsView0.qrc
 )
  
 setup_qt_executable(${LOCAL_PROJECT_NAME})
  
 SOURCE_GROUP("Resources" FILES
   ${${LOCAL_PROJECT_NAME}_UI}
-  ${${LOCAL_PROJECT_NAME}_RSC}
+  ${${LOCAL_PROJECT_NAME}_RCS}
   ${${LOCAL_PROJECT_NAME}_SCRIPTS}
   ${EXE_ICON}
 )

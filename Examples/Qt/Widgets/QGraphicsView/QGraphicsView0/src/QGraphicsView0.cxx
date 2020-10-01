@@ -10,6 +10,13 @@ QGraphicsView0::QGraphicsView0(QWidget *parent) :
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
 
+	QGraphicsPixmapItem* image = new QGraphicsPixmapItem(QPixmap(":/2016_StanleyCup.jpg"));
+
+	scene->addItem(image);
+
+	int imageWidth = image->pixmap().width();
+	int imageHeight = image->pixmap().height();
+
     QBrush greenBrush(Qt::green);
     QBrush blueBrush(Qt::blue);
     QPen outlinePen(Qt::black);
@@ -18,11 +25,15 @@ QGraphicsView0::QGraphicsView0(QWidget *parent) :
     rectangle = scene->addRect(100, 0, 80, 100, outlinePen, blueBrush);
 
     // addEllipse(x,y,w,h,pen,brush)
-    ellipse = scene->addEllipse(0, -100, 300, 60, outlinePen, greenBrush);
+    ellipse = scene->addEllipse(0, 300, 300, 60, outlinePen, greenBrush);
+
+    ellipse->setFlags(QGraphicsItem::ItemIsMovable);
 
     text = scene->addText("bogotobogo.com", QFont("Arial", 20) );
     // movable text
     text->setFlag(QGraphicsItem::ItemIsMovable);
+
+
 }
 
 QGraphicsView0::~QGraphicsView0()
