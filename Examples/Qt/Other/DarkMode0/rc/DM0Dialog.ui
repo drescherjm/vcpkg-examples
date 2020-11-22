@@ -56,22 +56,37 @@
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <widget class="QPushButton" name="pushButton">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
        <property name="text">
-        <string>PushButton</string>
+        <string>Big Button</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_2">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
        <property name="text">
-        <string>PushButton</string>
+        <string>Big Button</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_3">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
        <property name="text">
-        <string>PushButton</string>
+        <string>Big Button</string>
        </property>
       </widget>
      </item>
@@ -93,10 +108,36 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QTableView" name="tableView"/>
+      <widget class="QListWidget" name="listWidget">
+       <item>
+        <property name="text">
+         <string>Data#1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Data#2</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Data#3</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Data#4</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+      </widget>
      </item>
      <item>
-      <widget class="QListWidget" name="listWidget"/>
+      <widget class="QTableView" name="tableView"/>
      </item>
     </layout>
    </item>
