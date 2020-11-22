@@ -25,7 +25,7 @@ set(${LOCAL_PROJECT_NAME}_MOC_HDRS
 
 # and finally an resource file
 set( ${LOCAL_PROJECT_NAME}_RCS 
-	
+	./qdarkstyle/style.qrc
 )
  
 setup_qt_executable(${LOCAL_PROJECT_NAME})
