@@ -47,6 +47,13 @@ SOURCE_GROUP("Generated" FILES
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE ${LOCAL_PROJECT_SOURCE_DIR}/Include
 	${LOCAL_PROJECT_BINARY_DIR}
 	)
+	
+target_precompile_headers( ${LOCAL_PROJECT_NAME} 
+	PRIVATE 
+	<QApplication> 
+	<QFile>
+	<QTextStream>
+)
   
 TARGET_LINK_LIBRARIES( ${LOCAL_PROJECT_NAME} ${QT_LIBRARIES} ${UPMC_EXTERNAL_LIBS} )
 

@@ -1,10 +1,9 @@
-#include <QApplication>
-#include <QFile>
-#include <QTextStream>
+// #include <QApplication>
+// #include <QFile>
+// #include <QTextStream>
 #include "DM0Dialog.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
-
 
 void setupDarkMode()
 {
