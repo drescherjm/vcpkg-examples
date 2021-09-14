@@ -1,5 +1,6 @@
 #include "ui_QtVTKRenderWindows.h"
 #include "QtVTKRenderWindows.h"
+#include "vtkResliceCursorCallback.h"
 
 #include "vtkBoundedPlanePointPlacer.h"
 #include "vtkCellPicker.h"
@@ -31,100 +32,7 @@
 #include "vtkResliceCursorPolyDataAlgorithm.h"
 #include "vtkResliceCursor.h"
 #include "vtkResliceImageViewerMeasurements.h"
-#include <vtkImageHistogramStatistics.h>
-
-
-//#define READ_TIFF
-#define CALCULATE_IMAGE_STATISTICS
-
-#ifdef READ_TIFF
-#include <vtkTIFFReader.h>
-#endif //def READ_TIFF
-
-//----------------------------------------------------------------------------
-class vtkResliceCursorCallback : public vtkCommand
-{
-public:
-  static vtkResliceCursorCallback *New()
-  { return new vtkResliceCursorCallback; }
-
-  void Execute( vtkObject *caller, unsigned long ev,
-                void *callData ) override
-  {
-
-    if (ev == vtkResliceCursorWidget::WindowLevelEvent ||
-        ev == vtkCommand::WindowLevelEvent ||
-        ev == vtkResliceCursorWidget::ResliceThicknessChangedEvent)
-    {
-      // Render everything
-      for (int i = 0; i < 3; i++)
-      {
-        this->RCW[i]->Render();
-      }
-      this->IPW[0]->GetInteractor()->GetRenderWindow()->Render();
-      return;
-    }
-
-    vtkImagePlaneWidget* ipw =
-      dynamic_cast< vtkImagePlaneWidget* >( caller );
-    if (ipw)
-    {
-      double* wl = static_cast<double*>( callData );
-
-      if ( ipw == this->IPW[0] )
-      {
-        this->IPW[1]->SetWindowLevel(wl[0],wl[1],1);
-        this->IPW[2]->SetWindowLevel(wl[0],wl[1],1);
-      }
-      else if( ipw == this->IPW[1] )
-      {
-        this->IPW[0]->SetWindowLevel(wl[0],wl[1],1);
-        this->IPW[2]->SetWindowLevel(wl[0],wl[1],1);
-      }
-      else if (ipw == this->IPW[2])
-      {
-        this->IPW[0]->SetWindowLevel(wl[0],wl[1],1);
-        this->IPW[1]->SetWindowLevel(wl[0],wl[1],1);
-      }
-    }
-
-    vtkResliceCursorWidget *rcw = dynamic_cast<
-      vtkResliceCursorWidget * >(caller);
-    if (rcw)
-    {
-      vtkResliceCursorLineRepresentation *rep = dynamic_cast<
-        vtkResliceCursorLineRepresentation * >(rcw->GetRepresentation());
-      // Although the return value is not used, we keep the get calls
-      // in case they had side-effects
-      rep->GetResliceCursorActor()->GetCursorAlgorithm()->GetResliceCursor();
-      for (int i = 0; i < 3; i++)
-      {
-        vtkPlaneSource *ps = static_cast< vtkPlaneSource * >(
-            this->IPW[i]->GetPolyDataAlgorithm());
-        ps->SetOrigin(this->RCW[i]->GetResliceCursorRepresentation()->
-                                          GetPlaneSource()->GetOrigin());
-        ps->SetPoint1(this->RCW[i]->GetResliceCursorRepresentation()->
-                                          GetPlaneSource()->GetPoint1());
-        ps->SetPoint2(this->RCW[i]->GetResliceCursorRepresentation()->
-                                          GetPlaneSource()->GetPoint2());
-
-        // If the reslice plane has modified, update it on the 3D widget
-        this->IPW[i]->UpdatePlacement();
-      }
-    }
-
-    // Render everything
-    for (int i = 0; i < 3; i++)
-    {
-      this->RCW[i]->Render();
-    }
-    this->IPW[0]->GetInteractor()->GetRenderWindow()->Render();
-  }
-
-  vtkResliceCursorCallback() {}
-  vtkImagePlaneWidget* IPW[3];
-  vtkResliceCursorWidget *RCW[3];
-};
+#include "dicom/vtkDICOMReader.h"
 
 
 QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
@@ -132,25 +40,16 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
   this->ui = new Ui_QtVTKRenderWindows;
   this->ui->setupUi(this);
 
- 
-#ifndef READ_TIFF
-  vtkSmartPointer< vtkDICOMImageReader > reader =  vtkSmartPointer< vtkDICOMImageReader >::New();
-  reader->SetDirectoryName(argv[1]);
-#else
-  vtkSmartPointer< vtkTIFFReader> reader = vtkSmartPointer<vtkTIFFReader>::New();
+  vtkSmartPointer< vtkDICOMReader > reader =
+    vtkSmartPointer< vtkDICOMReader >::New();
   reader->SetFileName(argv[1]);
-#endif
-    
   reader->Update();
+
+  vtkStringArray* stackNames = reader->GetStackIDs();
+
+
   int imageDims[3];
   reader->GetOutput()->GetDimensions(imageDims);
-
-#ifdef CALCULATE_IMAGE_STATISTICS
-  vtkSmartPointer < vtkImageHistogramStatistics > stats = vtkSmartPointer<vtkImageHistogramStatistics>::New();
-  stats->SetInputConnection(reader->GetOutputPort());
-  stats->Update();
-  stats->Print(std::cout);
-#endif
 
   for (int i = 0; i < 3; i++)
   {
@@ -160,13 +59,13 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
   }
 
   this->ui->view1->SetRenderWindow(riw[0]->GetRenderWindow());
-  riw[0]->SetupInteractor(this->ui->view1->GetRenderWindow()->GetInteractor());
+  riw[0]->SetupInteractor( this->ui->view1->GetRenderWindow()->GetInteractor());
 
   this->ui->view2->SetRenderWindow(riw[1]->GetRenderWindow());
-  riw[1]->SetupInteractor(this->ui->view2->GetRenderWindow()->GetInteractor());
+  riw[1]->SetupInteractor( this->ui->view2->GetRenderWindow()->GetInteractor());
 
   this->ui->view3->SetRenderWindow(riw[2]->GetRenderWindow());
-  riw[2]->SetupInteractor(this->ui->view3->GetRenderWindow()->GetInteractor());
+  riw[2]->SetupInteractor( this->ui->view3->GetRenderWindow()->GetInteractor());
 
   for (int i = 0; i < 3; i++)
   {
@@ -176,23 +75,19 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
           riw[i]->GetResliceCursorWidget()->GetRepresentation());
     riw[i]->SetResliceCursor(riw[0]->GetResliceCursor());
 
-    rep->GetResliceCursorActor()->
-      GetCursorAlgorithm()->SetReslicePlaneNormal(i);
+    rep->GetResliceCursorActor()-> GetCursorAlgorithm()->SetReslicePlaneNormal(i);
 
     riw[i]->SetInputData(reader->GetOutput());
-    riw[i]->SetSliceOrientation(i);
+    riw[i]->SetSliceOrientation(i); // enum { SLICE_ORIENTATION_YZ = 0, SLICE_ORIENTATION_XZ = 1, SLICE_ORIENTATION_XY = 2 }
     riw[i]->SetResliceModeToAxisAligned();
   }
 
-  vtkSmartPointer<vtkCellPicker> picker =
-    vtkSmartPointer<vtkCellPicker>::New();
+  vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
   picker->SetTolerance(0.005);
 
-  vtkSmartPointer<vtkProperty> ipwProp =
-    vtkSmartPointer<vtkProperty>::New();
+  vtkSmartPointer<vtkProperty> ipwProp =  vtkSmartPointer<vtkProperty>::New();
 
-  vtkSmartPointer< vtkRenderer > ren =
-    vtkSmartPointer< vtkRenderer >::New();
+  vtkSmartPointer< vtkRenderer > ren = vtkSmartPointer< vtkRenderer >::New();
 
   vtkNew<vtkGenericOpenGLRenderWindow> renderWindow;
   this->ui->view4->SetRenderWindow(renderWindow);
@@ -212,6 +107,8 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
     color[0] /= 4.0;
     color[1] /= 4.0;
     color[2] /= 4.0;
+	// This sets the background color on the 3 slice views to match the color
+	// set on the 4th 3D Image plane widget.
     riw[i]->GetRenderer()->SetBackground( color );
 
     planeWidget[i]->SetTexturePlaneProperty(ipwProp);
@@ -227,8 +124,7 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
     planeWidget[i]->InteractionOn();
   }
 
-  vtkSmartPointer<vtkResliceCursorCallback> cbk =
-    vtkSmartPointer<vtkResliceCursorCallback>::New();
+  vtkSmartPointer<vtkResliceCursorCallback> cbk = vtkSmartPointer<vtkResliceCursorCallback>::New();
 
   for (int i = 0; i < 3; i++)
   {
@@ -383,10 +279,9 @@ void QtVTKRenderWindows::AddDistanceMeasurementToView(int i)
   this->DistanceWidget[i]->SetPriority(
     this->riw[i]->GetResliceCursorWidget()->GetPriority() + 0.01);
 
-  vtkSmartPointer< vtkPointHandleRepresentation2D > handleRep =
-    vtkSmartPointer< vtkPointHandleRepresentation2D >::New();
-  vtkSmartPointer< vtkDistanceRepresentation2D > distanceRep =
-    vtkSmartPointer< vtkDistanceRepresentation2D >::New();
+  vtkSmartPointer< vtkPointHandleRepresentation2D > handleRep = vtkSmartPointer< vtkPointHandleRepresentation2D >::New();
+  vtkSmartPointer< vtkDistanceRepresentation2D > distanceRep =  vtkSmartPointer< vtkDistanceRepresentation2D >::New();
+
   distanceRep->SetHandleRepresentation(handleRep);
   this->DistanceWidget[i]->SetRepresentation(distanceRep);
   distanceRep->InstantiateHandleRepresentation();

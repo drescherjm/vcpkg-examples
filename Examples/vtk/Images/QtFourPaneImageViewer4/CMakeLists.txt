@@ -1,4 +1,4 @@
-myproject(QtVTKRenderWindows_1)
+myproject(QtVTKRenderWindows_4)
 
 find_package(VTK
   COMPONENTS
@@ -17,7 +17,7 @@ endif ()
 
 include(${VTK_USE_FILE})
 
-#find_package(GDCM REQUIRED)
+#find_package(DICOM REQUIRED)
 
 find_package(Qt5 COMPONENTS Widgets)
 if (NOT TARGET Qt5::Widgets)
@@ -50,7 +50,7 @@ add_executable(${LOCAL_PROJECT_NAME}
 target_link_libraries(${LOCAL_PROJECT_NAME} 
   PRIVATE
     ${VTK_LIBRARIES}
-	#vtkgdcm
+	VTK::DICOM
     Qt5::Widgets)
 	
 
