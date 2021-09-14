@@ -36,8 +36,13 @@ set(Hdrs
   Include/vtkImageAlgorithmFilter.h
   )
 
+if (VTK_VERSION VERSION_LESS "8.90.0")
 set(UIs
   rc/QtVTKRenderWindows.ui)
+else()
+set(UIs
+  rc/QtVTKRenderWindowsVTK9.ui)
+endif()
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS rc)
 

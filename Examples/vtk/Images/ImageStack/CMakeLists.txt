@@ -4,7 +4,7 @@ find_package(VTK COMPONENTS
   vtkCommonCore
   vtkCommonDataModel
   vtkInteractionStyle
-  vtkRenderingContextOpenGL2
+  #vtkRenderingContextOpenGL2
   vtkRenderingCore
   vtkRenderingFreeType
   vtkRenderingGL2PSOpenGL2
