@@ -34,7 +34,6 @@ public slots:
 
 protected:
   vtkSmartPointer< vtkResliceImageViewer > riw;
-  vtkSmartPointer< vtkImagePlaneWidget > planeWidget[3];
   vtkSmartPointer< vtkDistanceWidget > DistanceWidget[3];
   vtkSmartPointer< vtkResliceImageViewerMeasurements > ResliceMeasurements;
 
