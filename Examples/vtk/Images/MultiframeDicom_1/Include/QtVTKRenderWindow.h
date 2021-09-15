@@ -2,7 +2,7 @@
 #define QtVTKRenderWindow_H
 
 #include "vtkSmartPointer.h"
-#include "vtkImageViewer2.h"
+#include "vtkResliceImageViewer.h"
 #include "vtkImagePlaneWidget.h"
 #include "vtkDistanceWidget.h"
 #include "vtkResliceImageViewerMeasurements.h"
@@ -33,7 +33,7 @@ public slots:
   virtual void Render();
 
 protected:
-  vtkSmartPointer< vtkImageViewer2 > riw;
+  vtkSmartPointer< vtkResliceImageViewer > riw;
   vtkSmartPointer< vtkDistanceWidget > DistanceWidget[3];
   vtkSmartPointer< vtkResliceImageViewerMeasurements > ResliceMeasurements;
 

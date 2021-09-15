@@ -51,24 +51,35 @@ QtVTKRenderWindow::QtVTKRenderWindow(int vtkNotUsed(argc), char* argv[])
 	int imageDims[3];
 	reader->GetOutput()->GetDimensions(imageDims);
 
-	riw = vtkSmartPointer< vtkImageViewer2 >::New();
+	riw = vtkSmartPointer< vtkResliceImageViewer >::New();
 	vtkNew<vtkGenericOpenGLRenderWindow> renderWindow;
 	riw->SetRenderWindow(renderWindow);
 
 	this->ui->view->SetRenderWindow(riw->GetRenderWindow());
 	riw->SetupInteractor(this->ui->view->GetRenderWindow()->GetInteractor());
 
+
+	// make them all share the same reslice cursor object.
+	vtkResliceCursorLineRepresentation* rep =
+		vtkResliceCursorLineRepresentation::SafeDownCast(
+			riw->GetResliceCursorWidget()->GetRepresentation());
+	riw->SetResliceCursor(riw->GetResliceCursor());
+
+	rep->GetResliceCursorActor()->GetCursorAlgorithm()->SetReslicePlaneNormal(vtkResliceImageViewer::SLICE_ORIENTATION_XY);
+
 	riw->SetInputData(reader->GetOutput());
 	riw->SetSliceOrientation(vtkResliceImageViewer::SLICE_ORIENTATION_XY); // enum { SLICE_ORIENTATION_YZ = 0, SLICE_ORIENTATION_XZ = 1, SLICE_ORIENTATION_XY = 2 }
+	riw->SetResliceModeToAxisAligned();
 	riw->SetColorWindow(512);
 	riw->SetColorLevel(512);
 
-// 	vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
-// 	picker->SetTolerance(0.005);
 
-// 	vtkSmartPointer<vtkProperty> ipwProp = vtkSmartPointer<vtkProperty>::New();
-// 
-// 	vtkSmartPointer< vtkRenderer > ren = vtkSmartPointer< vtkRenderer >::New();
+	vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
+	picker->SetTolerance(0.005);
+
+	vtkSmartPointer<vtkProperty> ipwProp = vtkSmartPointer<vtkProperty>::New();
+
+	vtkSmartPointer< vtkRenderer > ren = vtkSmartPointer< vtkRenderer >::New();
 
 	this->ui->view->show();
 
@@ -98,26 +109,26 @@ void QtVTKRenderWindow::resliceMode(int mode)
 	this->ui->blendModeGroupBox->setEnabled(mode ? 1 : 0);
 
 	
-// 		riw->SetResliceMode(mode ? 1 : 0);
-// 		riw->GetRenderer()->ResetCamera();
-// 		riw->Render();
+		riw->SetResliceMode(mode ? 1 : 0);
+		riw->GetRenderer()->ResetCamera();
+		riw->Render();
 	
 }
 
 void QtVTKRenderWindow::thickMode(int mode)
 {
-// 	riw->SetThickMode(mode ? 1 : 0);
-// 	riw->Render();
+	riw->SetThickMode(mode ? 1 : 0);
+	riw->Render();
 }
 
 void QtVTKRenderWindow::SetBlendMode(int m)
 {
 	
-// 	vtkImageSlabReslice* thickSlabReslice = vtkImageSlabReslice::SafeDownCast(
-// 		vtkResliceCursorThickLineRepresentation::SafeDownCast(
-// 			riw->GetResliceCursorWidget()->GetRepresentation())->GetReslice());
-// 	thickSlabReslice->SetBlendMode(m);
-// 	riw->Render();
+	vtkImageSlabReslice* thickSlabReslice = vtkImageSlabReslice::SafeDownCast(
+		vtkResliceCursorThickLineRepresentation::SafeDownCast(
+			riw->GetResliceCursorWidget()->GetRepresentation())->GetReslice());
+	thickSlabReslice->SetBlendMode(m);
+	riw->Render();
 	
 }
 
@@ -139,7 +150,7 @@ void QtVTKRenderWindow::SetBlendModeToMeanIP()
 void QtVTKRenderWindow::ResetViews()
 {
 	// Reset the reslice image views
-	//riw->Reset();
+	riw->Reset();
 
 	// Render in response to changes.
 	this->Render();
