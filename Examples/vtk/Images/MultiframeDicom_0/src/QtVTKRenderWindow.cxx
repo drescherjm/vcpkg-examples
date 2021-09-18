@@ -33,6 +33,7 @@
 #include "vtkResliceCursor.h"
 #include "vtkResliceImageViewerMeasurements.h"
 #include "dicom/vtkDICOMReader.h"
+#include <vtkCamera.h>
 
 
 QtVTKRenderWindow::QtVTKRenderWindow(int vtkNotUsed(argc), char* argv[])
@@ -59,18 +60,13 @@ QtVTKRenderWindow::QtVTKRenderWindow(int vtkNotUsed(argc), char* argv[])
 	riw->SetupInteractor(this->ui->view->GetRenderWindow()->GetInteractor());
 
 	riw->SetInputData(reader->GetOutput());
+	riw->UpdateDisplayExtent();
 	riw->SetSliceOrientation(vtkResliceImageViewer::SLICE_ORIENTATION_XY); // enum { SLICE_ORIENTATION_YZ = 0, SLICE_ORIENTATION_XZ = 1, SLICE_ORIENTATION_XY = 2 }
 	riw->SetColorWindow(512);
 	riw->SetColorLevel(512);
 
-// 	vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
-// 	picker->SetTolerance(0.005);
-
-// 	vtkSmartPointer<vtkProperty> ipwProp = vtkSmartPointer<vtkProperty>::New();
-// 
-// 	vtkSmartPointer< vtkRenderer > ren = vtkSmartPointer< vtkRenderer >::New();
-
 	this->ui->view->show();
+	riw->Render();
 
 	// Set up action signals and slots
 	connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));

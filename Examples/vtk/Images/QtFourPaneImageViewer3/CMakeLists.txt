@@ -39,9 +39,11 @@ set(Hdrs
 if (VTK_VERSION VERSION_LESS "8.90.0")
 set(UIs
   rc/QtVTKRenderWindows.ui)
+  set_property(SOURCE rc/QtVTKRenderWindowsVTK9.ui PROPERTY SKIP_AUTOUIC ON)
 else()
 set(UIs
   rc/QtVTKRenderWindowsVTK9.ui)
+   set_property(SOURCE rc/QtVTKRenderWindows.ui PROPERTY SKIP_AUTOUIC ON)
 endif()
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS rc)
@@ -58,6 +60,5 @@ target_link_libraries(${LOCAL_PROJECT_NAME}
     ${VTK_LIBRARIES}
     Qt5::Widgets)
 	
-
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE Include)
 set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER vtk/Images)
