@@ -1,8 +1,4 @@
-option (BUILD_VTKRenderWindows_3 "Build VTKRenderWindows_3" OFF)
-
-if (BUILD_VTKRenderWindows_3)
-
-myproject(QtVTKRenderWindows_3)
+myproject(QtVTKRenderWindowsGLNative)
 
 find_package(VTK
   COMPONENTS
@@ -13,7 +9,8 @@ find_package(VTK
     vtkImagingGeneral
     vtkInteractionImage
     vtkInteractionStyle
-    vtkInteractionWidgets)
+    vtkInteractionWidgets
+	vtkImagingStatistics)
 if (NOT VTK_FOUND)
   message("Skipping example: ${VTK_NOT_FOUND_MESSAGE}")
   return ()
@@ -30,25 +27,13 @@ endif ()
 # Set your files and resources here
 set(Srcs
   src/QtVTKRenderWindowsApp.cxx
-  src/QtVTKRenderWindows.cxx
-  src/vtkResliceCursorCallback.cxx
-  src/vtkImageAlgorithmFilter.cxx)
+  src/QtVTKRenderWindows.cxx)
 
 set(Hdrs
-  Include/QtVTKRenderWindows.h
-  Include/vtkResliceCursorCallback.h
-  Include/vtkImageAlgorithmFilter.h
-  )
+  Include/QtVTKRenderWindows.h)
 
-if (VTK_VERSION VERSION_LESS "8.90.0")
 set(UIs
   rc/QtVTKRenderWindows.ui)
-  set_property(SOURCE rc/QtVTKRenderWindowsVTK9.ui PROPERTY SKIP_AUTOUIC ON)
-else()
-set(UIs
-  rc/QtVTKRenderWindowsVTK9.ui)
-   set_property(SOURCE rc/QtVTKRenderWindows.ui PROPERTY SKIP_AUTOUIC ON)
-endif()
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS rc)
 
@@ -64,7 +49,6 @@ target_link_libraries(${LOCAL_PROJECT_NAME}
     ${VTK_LIBRARIES}
     Qt5::Widgets)
 	
+
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE Include)
 set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER vtk/Images)
-
-endif()
