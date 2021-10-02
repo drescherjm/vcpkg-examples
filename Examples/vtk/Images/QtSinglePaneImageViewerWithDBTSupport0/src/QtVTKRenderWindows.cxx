@@ -38,9 +38,13 @@
 #include <vtkProperty2D.h>
 #include "dicom/vtkDICOMReader.h"
 #include <QTimer>
+#include <boost/lexical_cast.hpp>
+#include <vtkCamera.h>
 
-#define TEST_SEED_WIDGET
+using boost::lexical_cast;
+using boost::bad_lexical_cast;
 
+//#define TEST_SEED_WIDGET
 #include <QTime>
 
 class FunctionProfiler
@@ -69,15 +73,16 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void timedRender(vtkResliceImageViewer* pView)
+void timedRender(VTKViewWidget* pView)
 {
 	PROFILE_THIS_FUNCTION;
+//	pView->UpdateDisplayExtent();
 	pView->Render();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void timedSetSlice(vtkResliceImageViewer* pView,int nSlice)
+void timedSetSlice(VTKViewWidget* pView,int nSlice)
 {
 	PROFILE_THIS_FUNCTION;
 	pView->SetSlice(nSlice);
@@ -93,7 +98,7 @@ void timedLoad(vtkDICOMReader* pReader)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void timedSetinputData(vtkDICOMReader* pReader,vtkResliceImageViewer* pView)
+void timedSetinputData(vtkDICOMReader* pReader, VTKViewWidget* pView)
 {
 	PROFILE_THIS_FUNCTION;
 	pView->SetInputData(pReader->GetOutput());
@@ -101,15 +106,33 @@ void timedSetinputData(vtkDICOMReader* pReader,vtkResliceImageViewer* pView)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-QtVTKRenderWindows::QtVTKRenderWindows(int vtkNotUsed(argc), char* argv[])
+QtVTKRenderWindows::QtVTKRenderWindows(int argc, char* argv[])
 {
 	this->ui = new Ui_QtVTKRenderWindow;
 	this->ui->setupUi(this);
 
+	setWindowState(Qt::WindowFullScreen);
+
+	int nCineDelay = 50;
+	
+	if (argc > 2) {
+		nCineDelay = lexical_cast<int>(argv[2]);
+	}
+
+	if (argc > 1) {
+		//QTimer::singleShot(0, this, SLOT(initializeDisplay(argv[1], nCineDelay)));
+		QTimer::singleShot(0, [=]() {initializeDisplay(argv[1], nCineDelay); });
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+void QtVTKRenderWindows::initializeDisplay(std::string strFilename,int nCineDelay)
+{
 	QSize szQtWindow = size();
 
 	vtkSmartPointer< vtkDICOMReader > reader = vtkSmartPointer< vtkDICOMReader >::New();
-	reader->SetFileName(argv[1]);
+	reader->SetFileName(strFilename.c_str());
 	reader->SetMemoryRowOrderToFileNative();
 	//reader->Update();
 
@@ -120,7 +143,7 @@ QtVTKRenderWindows::QtVTKRenderWindows(int vtkNotUsed(argc), char* argv[])
 	int imageDims[3];
 	reader->GetOutput()->GetDimensions(imageDims);
 
-	riw = vtkSmartPointer< vtkResliceImageViewer >::New();
+	riw = vtkSmartPointer< VTKViewWidget >::New();
 	vtkRenderWindow* renderWindow = vtkGenericOpenGLRenderWindow::New();
 
 	auto renderSize = renderWindow->GetSize();
@@ -145,7 +168,7 @@ QtVTKRenderWindows::QtVTKRenderWindows(int vtkNotUsed(argc), char* argv[])
 	renderSize[1] = std::max(szQtWindow.height(), renderSize[0]);
 
 	riw->SetSize(renderSize);
-		
+
 	this->ui->view->SetRenderWindow(riw->GetRenderWindow());
 	riw->SetupInteractor(this->ui->view->GetRenderWindow()->GetInteractor());
 
@@ -155,10 +178,8 @@ QtVTKRenderWindows::QtVTKRenderWindows(int vtkNotUsed(argc), char* argv[])
 
 	riw->SetColorLevel(512.0);
 	riw->SetColorWindow(512.0);
-	
-	riw->GetRenderer()->ResetCamera();
 
-	timedRender(riw);
+	//timedRender(riw);
 
 #ifdef TEST_SEED_WIDGET
 	// Create the representation for the seed widget and for its handles
@@ -174,7 +195,7 @@ QtVTKRenderWindows::QtVTKRenderWindows(int vtkNotUsed(argc), char* argv[])
 	if (pInteractor) {
 		seedWidget->SetInteractor(pInteractor);
 		seedWidget->SetRepresentation(widgetRep);
-	}
+}
 
 	seedWidget->On();
 
@@ -201,12 +222,19 @@ QtVTKRenderWindows::QtVTKRenderWindows(int vtkNotUsed(argc), char* argv[])
 
 	riw->SetSlice((nMax - nMin) / 2);
 
+	setupCamera(reader->GetOutput());
+
+// 	riw->GetRenderer()->GetActiveCamera()->ParallelProjectionOn();
+// 	riw->GetRenderer()->GetActiveCamera()->SetParallelScale(125);
+
 	QTimer* timer = new QTimer(this);
-	timer->setInterval(200);
+	timer->setInterval(nCineDelay);
+
 	connect(timer, &QTimer::timeout, this, &QtVTKRenderWindows::nextSlice);
 	timer->start();
+}
 
-};
+/////////////////////////////////////////////////////////////////////////////////////////
 
 void QtVTKRenderWindows::slotExit()
 {
@@ -266,7 +294,7 @@ void QtVTKRenderWindows::ResetViews()
 {
   // Reset the reslice image views
 
-  riw->Reset();
+  //riw->Reset();
 
   // Also sync the Image plane widget on the 3D top right view with any
   // changes to the reslice cursor.
@@ -322,6 +350,40 @@ void QtVTKRenderWindows::nextSlice()
 	}
 
 	timedSetSlice(riw, nCur);
+
+	auto level = riw->GetColorLevel();
+	auto window = riw->GetColorWindow();
+
+	auto nScale = riw->GetRenderer()->GetActiveCamera()->GetParallelScale();
+
+	std::cout << "Window: " << window << " Level: " << level << " Scale: " << nScale << '\n';
+
+}
+
+void QtVTKRenderWindows::setupCamera(vtkImageData* pImage)
+{
+	int extent[6];
+	pImage->GetExtent(extent);
+
+	double origin[3];
+	pImage->GetOrigin(origin);
+
+	double spacing[3];
+	pImage->GetSpacing(spacing);
+
+	vtkCamera* camera = riw->GetRenderer()->GetActiveCamera();
+	camera->ParallelProjectionOn();
+
+	float xc = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
+	float yc = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
+	//  float xd = (extent[1] - extent[0] + 1)*spacing[0]; // not used
+	float yd = (extent[3] - extent[2] + 1) * spacing[1];
+
+	float d = camera->GetDistance();
+	camera->SetParallelScale(0.5f * static_cast<float>(yd));
+	camera->SetFocalPoint(xc, yc, 0.0);
+	camera->SetPosition(xc, yc, +d);
+
 }
 
 // void QtVTKRenderWindows::AddDistanceMeasurementToView(int i)

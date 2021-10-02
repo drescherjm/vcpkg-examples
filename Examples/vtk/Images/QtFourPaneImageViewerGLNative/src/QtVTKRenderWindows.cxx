@@ -32,6 +32,7 @@
 #include "vtkResliceCursor.h"
 #include "vtkResliceImageViewerMeasurements.h"
 #include <vtkImageHistogramStatistics.h>
+#include <QTimer>
 
 
 //#define READ_TIFF
@@ -131,6 +132,8 @@ QtVTKRenderWindows::QtVTKRenderWindows( int vtkNotUsed(argc), char *argv[])
 {
   this->ui = new Ui_QtVTKRenderWindows;
   this->ui->setupUi(this);
+
+  QTimer::singleShot(0, this, SLOT(showFullScreen()));
 
  
 #ifndef READ_TIFF
