@@ -1,0 +1,8 @@
+Source: gdcm
+Version: 3.0.3
+Description: Grassroots DICOM library
+Build-Depends: zlib, expat, openjpeg
+
+Feature: vtk
+Description: Build gdcm support library for vtk.
+Build-Depends: vtk
