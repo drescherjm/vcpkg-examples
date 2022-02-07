@@ -17,7 +17,9 @@ endif ()
 
 include(${VTK_USE_FILE})
 
-#find_package(DICOM REQUIRED)
+if( NOT TARGET vtkDICOM AND NOT TARGET vtk::DICOM)
+#	find_package(DICOM REQUIRED)
+endif()
 
 find_package(Qt5 COMPONENTS Widgets)
 if (NOT TARGET Qt5::Widgets)
@@ -50,7 +52,7 @@ add_executable(${LOCAL_PROJECT_NAME}
 target_link_libraries(${LOCAL_PROJECT_NAME} 
   PRIVATE
     ${VTK_LIBRARIES}
-	VTK::DICOM
+	vtkDICOM
     Qt5::Widgets)
 	
 

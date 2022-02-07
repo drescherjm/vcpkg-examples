@@ -46,3 +46,9 @@ set (LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE INTERNAL "Single 
 set (EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
 
 add_subdirectory(Examples)
+
+get_all_targets(all_targets)
+message(STATUS "All targets: ${all_targets}")
+
+get_all_imported_targets(all_targets)
+message(STATUS "All targets: ${all_targets}")
