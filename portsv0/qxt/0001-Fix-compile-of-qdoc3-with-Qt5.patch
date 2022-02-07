@@ -1,0 +1,33 @@
+From 0bd3ff8bf0bb8ae4d67b9da6c81d0e44a4d3a977 Mon Sep 17 00:00:00 2001
+From: "John M. Drescher" <drescherjm@gmail.com>
+Date: Tue, 16 May 2017 15:14:44 -0400
+Subject: [PATCH] Fix compile of qdoc3 with Qt5.
+
+Signed-off-by: John M. Drescher <drescherjm@gmail.com>
+---
+ tools/3rdparty/qdoc3/location.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/tools/3rdparty/qdoc3/location.h b/tools/3rdparty/qdoc3/location.h
+index a1bd5630..e8b7ecce 100644
+--- a/tools/3rdparty/qdoc3/location.h
++++ b/tools/3rdparty/qdoc3/location.h
+@@ -52,6 +52,15 @@
+ 
+ #define QDOC_QML
+ 
++#if defined(Q_CC_MSVC) && !defined(QT_STATIC_CONST)
++#  define QT_STATIC_CONST static
++#  define QT_STATIC_CONST_IMPL
++#else
++#  define QT_STATIC_CONST static const
++#  define QT_STATIC_CONST_IMPL const
++#endif
++
++
+ QT_BEGIN_NAMESPACE
+ 
+ class Config;
+-- 
+2.21.0.windows.1
+

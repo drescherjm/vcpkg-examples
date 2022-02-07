@@ -1,22 +1,18 @@
-vcpkg_fail_port_install(ON_TARGET "uwp")
+include(vcpkg_common_functions)
 
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO malaterre/GDCM
-    REF b56f671dba79dca00d8cb3ebde83dbd88292e9e1 # v3.0.10
-    SHA512 58b4f1473e58e24339dccd8b8b7458a381077aacdbe7f059cfdcfe002a1f91ae837717889389ea33e3189e14ef6de472bac4f86d94f727757e534b0b94d7ed7b
-	#REF 17dc99ed77f10aada90448c524fcd0be62a40365 # v3.0.9
-    #SHA512 bfabd7b16d0301fb97be902cf1b1a63f387e1c289d7d87d2a39d4a169862a64b3c973df1d705da3da650f3908a51cca57b24353e993c8a2047f255f48196885d
+    REF v3.0.3
+    SHA512 d1b95ec342341f026f03ead569c20d4482611b6ba1616fab2aaeec617675c678db7e7d9d14820364231b1319ece284f0cd3c35f356b20ef22f7e8ccf8a3fbc21
     HEAD_REF master
     PATCHES
         use-openjpeg-config.patch
         fix-share-path.patch
-        Fix-Cmake_DIR.patch
+		Fix-Cmake_DIR.patch
 )
-
-
 
 if ("vtk" IN_LIST FEATURES)
     set(GDCM_USE_VTK                  ON )
@@ -61,14 +57,14 @@ file(REMOVE_RECURSE
     ${CURRENT_PACKAGES_DIR}/debug/share
 )
 
-vcpkg_replace_string(${CURRENT_PACKAGES_DIR}/share/gdcm/GDCMTargets.cmake
-    "set(CMAKE_IMPORT_FILE_VERSION 1)"
-    "set(CMAKE_IMPORT_FILE_VERSION 1)
-    find_package(OpenJPEG QUIET)"
-)
+file(READ ${CURRENT_PACKAGES_DIR}/share/gdcm/GDCMTargets.cmake GDCM_TARGETS)
+string(REPLACE "set(CMAKE_IMPORT_FILE_VERSION 1)"
+               "set(CMAKE_IMPORT_FILE_VERSION 1)
+find_package(OpenJPEG QUIET)" GDCM_TARGETS "${GDCM_TARGETS}")
+file(WRITE ${CURRENT_PACKAGES_DIR}/share/gdcm/GDCMTargets.cmake "${GDCM_TARGETS}")
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/bin ${CURRENT_PACKAGES_DIR}/debug/bin)
 endif()
 
-file(INSTALL ${SOURCE_PATH}/Copyright.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+file(INSTALL ${SOURCE_PATH}/Copyright.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/gdcm RENAME copyright)

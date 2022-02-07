@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -209,7 +209,7 @@
+     PRIVATE ${LXW_SOURCES}
+     PUBLIC ${LXW_HEADERS}
+ )
+-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZLIB_LIBRARIES} ${MINIZIP_LIBRARIES})
++target_link_libraries(${PROJECT_NAME} ${MINIZIP_LIBRARIES} LINK_PRIVATE ZLIB::ZLIB)
+ target_compile_definitions(${PROJECT_NAME} PRIVATE ${LXW_PRIVATE_COMPILE_DEFINITIONS})
+ if (WINDOWSSTORE)
+   target_compile_definitions(${PROJECT_NAME} PRIVATE -DIOWIN32_USING_WINRT_API)

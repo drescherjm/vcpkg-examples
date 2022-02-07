@@ -1,0 +1,1231 @@
+From 3c3c1a5e5e6d4b40c947230c30b7c08768761b00 Mon Sep 17 00:00:00 2001
+From: "John M. Drescher" <drescherjm@gmail.com>
+Date: Thu, 7 Oct 2021 18:34:11 -0400
+Subject: [PATCH] Push changes
+
+---
+ ports/gdcm/CONTROL                         |   8 -
+ ports/gdcm/Fix-Cmake_DIR.patch             |  41 ---
+ ports/gdcm/fix-share-path.patch            |  32 ---
+ ports/gdcm/portfile.cmake                  |  70 -----
+ ports/gdcm/use-openjpeg-config.patch       |  16 --
+ ports/vtk/CONTROL                          |  21 --
+ ports/vtk/FindGDAL.cmake                   | 127 ---------
+ ports/vtk/SplitLibraryConfigurations.cmake |  28 --
+ ports/vtk/fix-find-lz4.patch               |  20 --
+ ports/vtk/fix-find-lzma.patch              |  16 --
+ ports/vtk/fix-proj4.patch                  | 175 ------------
+ ports/vtk/fix-pugixml-link.patch           |  14 -
+ ports/vtk/fix_ogg_linkage.patch            |  12 -
+ ports/vtk/hdf5_static.patch                |  22 --
+ ports/vtk/portfile.cmake                   | 414 ++++++++++++++++-------------
+ 15 files changed, 229 insertions(+), 787 deletions(-)
+ delete mode 100644 ports/gdcm/CONTROL
+ delete mode 100644 ports/gdcm/Fix-Cmake_DIR.patch
+ delete mode 100644 ports/gdcm/fix-share-path.patch
+ delete mode 100644 ports/gdcm/portfile.cmake
+ delete mode 100644 ports/gdcm/use-openjpeg-config.patch
+ delete mode 100644 ports/vtk/CONTROL
+ delete mode 100644 ports/vtk/FindGDAL.cmake
+ delete mode 100644 ports/vtk/SplitLibraryConfigurations.cmake
+ delete mode 100644 ports/vtk/fix-find-lz4.patch
+ delete mode 100644 ports/vtk/fix-find-lzma.patch
+ delete mode 100644 ports/vtk/fix-proj4.patch
+ delete mode 100644 ports/vtk/fix-pugixml-link.patch
+ delete mode 100644 ports/vtk/fix_ogg_linkage.patch
+ delete mode 100644 ports/vtk/hdf5_static.patch
+
+diff --git a/ports/gdcm/CONTROL b/ports/gdcm/CONTROL
+deleted file mode 100644
+index 9c332e9..0000000
+--- a/ports/gdcm/CONTROL
++++ /dev/null
+@@ -1,8 +0,0 @@
+-Source: gdcm
+-Version: 3.0.3
+-Description: Grassroots DICOM library
+-Build-Depends: zlib, expat, openjpeg
+-
+-Feature: vtk
+-Description: Build gdcm support library for vtk.
+-Build-Depends: vtk
+\ No newline at end of file
+diff --git a/ports/gdcm/Fix-Cmake_DIR.patch b/ports/gdcm/Fix-Cmake_DIR.patch
+deleted file mode 100644
+index 189b28e..0000000
+--- a/ports/gdcm/Fix-Cmake_DIR.patch
++++ /dev/null
+@@ -1,41 +0,0 @@
+-diff --git a/CMake/ExportConfiguration/GDCMConfig.cmake.in b/CMake/ExportConfiguration/GDCMConfig.cmake.in
+-index f8e9d0b..ab28546 100644
+---- a/CMake/ExportConfiguration/GDCMConfig.cmake.in
+-+++ b/CMake/ExportConfiguration/GDCMConfig.cmake.in
+-@@ -33,28 +33,28 @@ if(GDCM_USE_VTK)
+-   set(GDCM_VTK_DIR "@GDCM_VTK_DIR_CONFIG@")
+- endif()
+- 
+--get_filename_component(SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+--if(EXISTS ${SELF_DIR}/GDCMTargets.cmake)
+-+get_filename_component(GDCM_SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+-+if(EXISTS ${GDCM_SELF_DIR}/GDCMTargets.cmake)
+-   # This is an install tree
+--  include(${SELF_DIR}/GDCMTargets.cmake)
+--  get_filename_component(GDCM_INCLUDE_ROOT "${SELF_DIR}/../../@GDCM_INSTALL_INCLUDE_DIR@" ABSOLUTE)
+-+  include(${GDCM_SELF_DIR}/GDCMTargets.cmake)
+-+  get_filename_component(GDCM_INCLUDE_ROOT "${GDCM_SELF_DIR}/../../@GDCM_INSTALL_INCLUDE_DIR@" ABSOLUTE)
+-   set(GDCM_INCLUDE_DIRS ${GDCM_INCLUDE_ROOT})
+--  get_filename_component(GDCM_LIB_ROOT "${SELF_DIR}/../../@GDCM_INSTALL_LIB_DIR@" ABSOLUTE)
+-+  get_filename_component(GDCM_LIB_ROOT "${GDCM_SELF_DIR}/../../@GDCM_INSTALL_LIB_DIR@" ABSOLUTE)
+-   set(GDCM_LIBRARY_DIRS ${GDCM_LIB_ROOT})
+- else()
+--  if(EXISTS ${SELF_DIR}/GDCMExports.cmake)
+-+  if(EXISTS ${GDCM_SELF_DIR}/GDCMExports.cmake)
+-     # This is a build tree
+-     set( GDCM_INCLUDE_DIRS "@GDCM_INCLUDE_PATH@")
+-     set(GDCM_LIBRARY_DIRS "@GDCM_LIBRARY_DIR@")
+- 
+--    include(${SELF_DIR}/GDCMExports.cmake)
+-+    include(${GDCM_SELF_DIR}/GDCMExports.cmake)
+- 
+-   else()
+-     message(FATAL_ERROR "ooops")
+-   endif()
+- endif()
+- 
+--set(GDCM_USE_FILE ${SELF_DIR}/UseGDCM.cmake)
+-+set(GDCM_USE_FILE ${GDCM_SELF_DIR}/UseGDCM.cmake)
+- 
+- # Backward compatible part:
+- set(GDCM_FOUND       TRUE)
+diff --git a/ports/gdcm/fix-share-path.patch b/ports/gdcm/fix-share-path.patch
+deleted file mode 100644
+index 898f4bf..0000000
+--- a/ports/gdcm/fix-share-path.patch
++++ /dev/null
+@@ -1,32 +0,0 @@
+-diff --git a/CMakeLists.txt b/CMakeLists.txt
+-index 6ac16ab..842d833 100644
+---- a/CMakeLists.txt
+-+++ b/CMakeLists.txt
+-@@ -246,15 +246,15 @@ if(NOT GDCM_INSTALL_LIB_DIR)
+- endif()
+- 
+- if(NOT GDCM_INSTALL_DATA_DIR)
+--  set(GDCM_INSTALL_DATA_DIR "share/${subdir}")
+-+  set(GDCM_INSTALL_DATA_DIR "share/${projectname}")
+- endif()
+- 
+- if(NOT GDCM_INSTALL_INCLUDE_DIR)
+--  set(GDCM_INSTALL_INCLUDE_DIR "include/${subdir}")
+-+  set(GDCM_INSTALL_INCLUDE_DIR "include/${projectname}")
+- endif()
+- 
+- if(NOT GDCM_INSTALL_DOC_DIR)
+--  set(GDCM_INSTALL_DOC_DIR "share/doc/${subdir}")
+-+  set(GDCM_INSTALL_DOC_DIR "share/doc/${projectname}")
+- endif()
+- 
+- if(NOT GDCM_INSTALL_MAN_DIR)
+-@@ -262,7 +262,7 @@ if(NOT GDCM_INSTALL_MAN_DIR)
+- endif()
+- 
+- if(NOT GDCM_INSTALL_PACKAGE_DIR)
+--  set(GDCM_INSTALL_PACKAGE_DIR ${GDCM_INSTALL_LIB_DIR}/${subdir}
+-+  set(GDCM_INSTALL_PACKAGE_DIR ${GDCM_INSTALL_LIB_DIR}/${projectname}
+-     CACHE INTERNAL "")
+- endif()
+- 
+diff --git a/ports/gdcm/portfile.cmake b/ports/gdcm/portfile.cmake
+deleted file mode 100644
+index 9839a9f..0000000
+--- a/ports/gdcm/portfile.cmake
++++ /dev/null
+@@ -1,70 +0,0 @@
+-include(vcpkg_common_functions)
+-
+-vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+-
+-vcpkg_from_github(
+-    OUT_SOURCE_PATH SOURCE_PATH
+-    REPO malaterre/GDCM
+-    REF v3.0.3
+-    SHA512 d1b95ec342341f026f03ead569c20d4482611b6ba1616fab2aaeec617675c678db7e7d9d14820364231b1319ece284f0cd3c35f356b20ef22f7e8ccf8a3fbc21
+-    HEAD_REF master
+-    PATCHES
+-        use-openjpeg-config.patch
+-        fix-share-path.patch
+-		Fix-Cmake_DIR.patch
+-)
+-
+-if ("vtk" IN_LIST FEATURES)
+-    set(GDCM_USE_VTK                  ON )
+-else()
+-    set(GDCM_USE_VTK                  OFF )
+-endif()
+-
+-if(GDCM_USE_VTK)
+-    list(APPEND ADDITIONAL_OPTIONS
+-        -DGDCM_USE_VTK=ON
+-    )
+-endif()
+-
+-file(REMOVE ${SOURCE_PATH}/CMake/FindOpenJPEG.cmake)
+-
+-if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+-  set(VCPKG_BUILD_SHARED_LIBS ON)
+-else()
+-  set(VCPKG_BUILD_SHARED_LIBS OFF)
+-endif()
+-
+-vcpkg_configure_cmake(
+-    SOURCE_PATH ${SOURCE_PATH}
+-    PREFER_NINJA
+-    OPTIONS
+-        -DGDCM_BUILD_DOCBOOK_MANPAGES=OFF
+-        -DGDCM_BUILD_SHARED_LIBS=${VCPKG_BUILD_SHARED_LIBS}
+-        -DGDCM_INSTALL_INCLUDE_DIR=include
+-        -DGDCM_USE_SYSTEM_EXPAT=ON
+-        -DGDCM_USE_SYSTEM_ZLIB=ON
+-        -DGDCM_USE_SYSTEM_OPENJPEG=ON
+-        -DGDCM_BUILD_TESTING=OFF
+-		${ADDITIONAL_OPTIONS}
+-)
+-
+-vcpkg_install_cmake()
+-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/gdcm)
+-vcpkg_copy_pdbs()
+-
+-file(REMOVE_RECURSE
+-    ${CURRENT_PACKAGES_DIR}/debug/include
+-    ${CURRENT_PACKAGES_DIR}/debug/share
+-)
+-
+-file(READ ${CURRENT_PACKAGES_DIR}/share/gdcm/GDCMTargets.cmake GDCM_TARGETS)
+-string(REPLACE "set(CMAKE_IMPORT_FILE_VERSION 1)"
+-               "set(CMAKE_IMPORT_FILE_VERSION 1)
+-find_package(OpenJPEG QUIET)" GDCM_TARGETS "${GDCM_TARGETS}")
+-file(WRITE ${CURRENT_PACKAGES_DIR}/share/gdcm/GDCMTargets.cmake "${GDCM_TARGETS}")
+-
+-if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+-    file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/bin ${CURRENT_PACKAGES_DIR}/debug/bin)
+-endif()
+-
+-file(INSTALL ${SOURCE_PATH}/Copyright.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/gdcm RENAME copyright)
+diff --git a/ports/gdcm/use-openjpeg-config.patch b/ports/gdcm/use-openjpeg-config.patch
+deleted file mode 100644
+index ff64bb1..0000000
+--- a/ports/gdcm/use-openjpeg-config.patch
++++ /dev/null
+@@ -1,16 +0,0 @@
+-diff --git a/CMakeLists.txt b/CMakeLists.txt
+-index f82bfd2..a062170 100644
+---- a/CMakeLists.txt
+-+++ b/CMakeLists.txt
+-@@ -375,7 +375,10 @@ else()
+- endif()
+- 
+- if(GDCM_USE_SYSTEM_OPENJPEG)
+--  find_package(OpenJPEG 2.0.0 REQUIRED)
+-+  find_package(OpenJPEG REQUIRED)
+-+  if(OPENJPEG_MAJOR_VERSION VERSION_LESS 2)
+-+    message( FATAL_ERROR "You need at least OpenJPEG 2")
+-+  endif()
+-   set(GDCM_OPENJPEG_LIBRARIES ${OPENJPEG_LIBRARIES})
+- else()
+-   set(GDCM_OPENJPEG_LIBRARIES gdcmopenjp2)
+diff --git a/ports/vtk/CONTROL b/ports/vtk/CONTROL
+deleted file mode 100644
+index e4f7714..0000000
+--- a/ports/vtk/CONTROL
++++ /dev/null
+@@ -1,21 +0,0 @@
+-Source: vtk
+-Version: 8.2.0-8
+-Description: Software system for 3D computer graphics, image processing, and visualization
+-Homepage: https://github.com/Kitware/VTK
+-Build-Depends: zlib, libpng, tiff, libxml2, jsoncpp, glew, freetype, expat, hdf5, libjpeg-turbo, proj4, lz4, libtheora, atlmfc (windows), eigen3, double-conversion, pugixml, libharu, sqlite3, netcdf-c
+-
+-Feature: openvr
+-Description: OpenVR functionality for VTK
+-Build-Depends: sdl2, openvr
+-
+-Feature: qt
+-Description: Qt functionality for VTK
+-Build-Depends: qt5
+-
+-Feature: mpi
+-Description: MPI functionality for VTK
+-Build-Depends: mpi, hdf5[parallel]
+-
+-Feature: python
+-Description: Python functionality for VTK
+-Build-Depends: python3
+diff --git a/ports/vtk/FindGDAL.cmake b/ports/vtk/FindGDAL.cmake
+deleted file mode 100644
+index e4f2f30..0000000
+--- a/ports/vtk/FindGDAL.cmake
++++ /dev/null
+@@ -1,127 +0,0 @@
+-# Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+-# file Copyright.txt or https://cmake.org/licensing for details.
+-
+-#.rst:
+-# FindGDAL
+-# --------
+-#
+-#
+-#
+-# Locate gdal
+-#
+-# This module accepts the following environment variables:
+-#
+-# ::
+-#
+-#     GDAL_DIR or GDAL_ROOT - Specify the location of GDAL
+-#
+-#
+-#
+-# This module defines the following CMake variables:
+-#
+-# ::
+-#
+-#     GDAL_FOUND - True if libgdal is found
+-#     GDAL_LIBRARY - A variable pointing to the GDAL library
+-#     GDAL_INCLUDE_DIR - Where to find the headers
+-
+-#
+-# $GDALDIR is an environment variable that would
+-# correspond to the ./configure --prefix=$GDAL_DIR
+-# used in building gdal.
+-#
+-# Created by Eric Wing. I'm not a gdal user, but OpenSceneGraph uses it
+-# for osgTerrain so I whipped this module together for completeness.
+-# I actually don't know the conventions or where files are typically
+-# placed in distros.
+-# Any real gdal users are encouraged to correct this (but please don't
+-# break the OS X framework stuff when doing so which is what usually seems
+-# to happen).
+-
+-# This makes the presumption that you are include gdal.h like
+-#
+-#include "gdal.h"
+-
+-find_path(GDAL_INCLUDE_DIR gdal.h
+-  HINTS
+-    ENV GDAL_DIR
+-    ENV GDAL_ROOT
+-  PATH_SUFFIXES
+-     include/gdal
+-     include/GDAL
+-     include
+-  PATHS
+-      ~/Library/Frameworks/gdal.framework/Headers
+-      /Library/Frameworks/gdal.framework/Headers
+-      /sw # Fink
+-      /opt/local # DarwinPorts
+-      /opt/csw # Blastwave
+-      /opt
+-)
+-
+-if(UNIX)
+-    # Use gdal-config to obtain the library version (this should hopefully
+-    # allow us to -lgdal1.x.y where x.y are correct version)
+-    # For some reason, libgdal development packages do not contain
+-    # libgdal.so...
+-    find_program(GDAL_CONFIG gdal-config
+-        HINTS
+-          ENV GDAL_DIR
+-          ENV GDAL_ROOT
+-        PATH_SUFFIXES bin
+-        PATHS
+-            /sw # Fink
+-            /opt/local # DarwinPorts
+-            /opt/csw # Blastwave
+-            /opt
+-    )
+-
+-    if(GDAL_CONFIG)
+-        exec_program(${GDAL_CONFIG} ARGS --libs OUTPUT_VARIABLE GDAL_CONFIG_LIBS)
+-        if(GDAL_CONFIG_LIBS)
+-            string(REGEX MATCHALL "-l[^ ]+" _gdal_dashl ${GDAL_CONFIG_LIBS})
+-            string(REPLACE "-l" "" _gdal_lib "${_gdal_dashl}")
+-            string(REGEX MATCHALL "-L[^ ]+" _gdal_dashL ${GDAL_CONFIG_LIBS})
+-            string(REPLACE "-L" "" _gdal_libpath "${_gdal_dashL}")
+-        endif()
+-    endif()
+-endif()
+-
+-find_library(GDAL_LIBRARY_RELEASE
+-  NAMES ${_gdal_lib} gdal gdal_i gdal1.5.0 gdal1.4.0 gdal1.3.2 GDAL
+-  HINTS
+-     ENV GDAL_DIR
+-     ENV GDAL_ROOT
+-     ${_gdal_libpath}
+-  PATH_SUFFIXES lib
+-  PATHS
+-    /sw
+-    /opt/local
+-    /opt/csw
+-    /opt
+-    /usr/freeware
+-)
+-
+-find_library(GDAL_LIBRARY_DEBUG
+-  NAMES ${_gdal_lib} gdald gdald_i gdald1.5.0 gdald1.4.0 gdald1.3.2 GDALD
+-  HINTS
+-     ENV GDAL_DIR
+-     ENV GDAL_ROOT
+-     ${_gdal_libpath}
+-  PATH_SUFFIXES lib
+-  PATHS
+-    /sw
+-    /opt/local
+-    /opt/csw
+-    /opt
+-    /usr/freeware
+-)
+-
+-include(SelectLibraryConfigurations)
+-select_library_configurations(GDAL)
+-
+-include(FindPackageHandleStandardArgs)
+-FIND_PACKAGE_HANDLE_STANDARD_ARGS(GDAL DEFAULT_MSG GDAL_LIBRARY GDAL_INCLUDE_DIR)
+-
+-set(GDAL_LIBRARIES ${GDAL_LIBRARY})
+-set(GDAL_INCLUDE_DIRS ${GDAL_INCLUDE_DIR})
+diff --git a/ports/vtk/SplitLibraryConfigurations.cmake b/ports/vtk/SplitLibraryConfigurations.cmake
+deleted file mode 100644
+index fc4d87e..0000000
+--- a/ports/vtk/SplitLibraryConfigurations.cmake
++++ /dev/null
+@@ -1,28 +0,0 @@
+-
+-cmake_minimum_required(VERSION 3.2.0)
+-
+-function(split_library_configurations LIBRARIES OPTIMIZED_OUT_VAR DEBUG_OUT_VAR GENERAL_OUT_VAR)
+-  set(OPTIMIZED_LIBRARIES)
+-  set(DEBUG_LIBRARIES)
+-  set(GENERAL_LIBRARIES)
+-
+-  set(CURRENT_TYPE)
+-  foreach(LIBRARY ${LIBRARIES})
+-    if("${LIBRARY}" STREQUAL "optimized" OR "${LIBRARY}" STREQUAL "debug" OR "${LIBRARY}" STREQUAL "general")
+-      set(CURRENT_TYPE "${LIBRARY}")
+-    else()
+-      if("${CURRENT_TYPE}" STREQUAL "optimized")
+-        list(APPEND OPTIMIZED_LIBRARIES "${LIBRARY}")
+-      elseif("${CURRENT_TYPE}" STREQUAL "debug")
+-        list(APPEND DEBUG_LIBRARIES "${LIBRARY}")
+-      else()
+-        list(APPEND GENERAL_LIBRARIES "${LIBRARY}")
+-      endif()
+-      set(CURRENT_TYPE)
+-    endif()
+-  endforeach()
+-
+-  set(${OPTIMIZED_OUT_VAR} "${OPTIMIZED_LIBRARIES}" PARENT_SCOPE)
+-  set(${DEBUG_OUT_VAR} "${DEBUG_LIBRARIES}" PARENT_SCOPE)
+-  set(${GENERAL_OUT_VAR} "${GENERAL_LIBRARIES}" PARENT_SCOPE)
+-endfunction()
+\ No newline at end of file
+diff --git a/ports/vtk/fix-find-lz4.patch b/ports/vtk/fix-find-lz4.patch
+deleted file mode 100644
+index 488640d..0000000
+--- a/ports/vtk/fix-find-lz4.patch
++++ /dev/null
+@@ -1,20 +0,0 @@
+-diff --git a/CMake/FindLZ4.cmake b/CMake/FindLZ4.cmake
+-index 07343e1f79..b43a9af2c7 100644
+---- a/CMake/FindLZ4.cmake
+-+++ b/CMake/FindLZ4.cmake
+-@@ -1,7 +1,13 @@
+--
+--find_library(LZ4_LIBRARIES NAMES lz4)
+-+find_library(LZ4_LIBRARY NAMES lz4 PATH_SUFFIXES lib)
+-+find_library(LZ4_LIBRARY_DEBUG NAMES lz4d PATH_SUFFIXES debug/lib)
+- find_path(LZ4_INCLUDE_DIRS NAMES lz4.h)
+- 
+-+if(NOT LZ4_LIBRARY_DEBUG)
+-+  set(LZ4_LIBRARY_DEBUG ${LZ4_LIBRARY})
+-+endif(NOT LZ4_LIBRARY_DEBUG)
+-+
+-+set(LZ4_LIBRARIES optimized ${LZ4_LIBRARY} debug ${LZ4_LIBRARY_DEBUG})
+-+
+- include(FindPackageHandleStandardArgs)
+- find_package_handle_standard_args(LZ4
+-   DEFAULT_MSG
+diff --git a/ports/vtk/fix-find-lzma.patch b/ports/vtk/fix-find-lzma.patch
+deleted file mode 100644
+index b2e375f..0000000
+--- a/ports/vtk/fix-find-lzma.patch
++++ /dev/null
+@@ -1,16 +0,0 @@
+-diff --git a/CMake/FindLZMA.cmake b/CMake/FindLZMA.cmake
+-index 213ab18df1..1e290da4cb 100644
+---- a/CMake/FindLZMA.cmake
+-+++ b/CMake/FindLZMA.cmake
+-@@ -1,7 +1,10 @@
+- 
+--find_library(LZMA_LIBRARIES NAMES lzma)
+-+find_library(LZMA_LIBRARY_RELEASE NAMES lzma PATH_SUFFIXES lib)
+-+find_library(LZMA_LIBRARY_DEBUG NAMES lzmad PATH_SUFFIXES debug/lib)
+- find_path(LZMA_INCLUDE_DIRS NAMES lzma.h)
+- 
+-+select_library_configurations(LZMA)
+-+
+- include(FindPackageHandleStandardArgs)
+- find_package_handle_standard_args(LZMA
+-   DEFAULT_MSG
+diff --git a/ports/vtk/fix-proj4.patch b/ports/vtk/fix-proj4.patch
+deleted file mode 100644
+index ad49b15..0000000
+--- a/ports/vtk/fix-proj4.patch
++++ /dev/null
+@@ -1,175 +0,0 @@
+-diff --git a/Geovis/Core/vtkGeoProjection.cxx b/Geovis/Core/vtkGeoProjection.cxx
+-index f3a8852..8240603 100644
+---- a/Geovis/Core/vtkGeoProjection.cxx
+-+++ b/Geovis/Core/vtkGeoProjection.cxx
+-@@ -72,6 +72,9 @@ public:
+-   }
+- 
+-   std::map< std::string, std::string > OptionalParameters;
+-+#if PROJ_VERSION_MAJOR >= 5
+-+  PJ_PROJ_INFO ProjInfo;
+-+#endif
+- };
+- 
+- //-----------------------------------------------------------------------------
+-@@ -80,7 +83,7 @@ int vtkGeoProjection::GetNumberOfProjections()
+-   if ( vtkGeoProjectionNumProj < 0 )
+-   {
+-     vtkGeoProjectionNumProj = 0;
+--    for ( const PJ_LIST* pj = pj_get_list_ref(); pj && pj->id; ++ pj )
+-+    for ( const PJ_LIST* pj = proj_list_operations(); pj && pj->id; ++ pj )
+-       ++ vtkGeoProjectionNumProj;
+-   }
+-   return vtkGeoProjectionNumProj;
+-@@ -91,7 +94,7 @@ const char* vtkGeoProjection::GetProjectionName( int projection )
+-   if ( projection < 0 || projection >= vtkGeoProjection::GetNumberOfProjections() )
+-     return nullptr;
+- 
+--  return pj_get_list_ref()[projection].id;
+-+  return proj_list_operations()[projection].id;
+- }
+- //-----------------------------------------------------------------------------
+- const char* vtkGeoProjection::GetProjectionDescription( int projection )
+-@@ -99,7 +102,7 @@ const char* vtkGeoProjection::GetProjectionDescription( int projection )
+-   if ( projection < 0 || projection >= vtkGeoProjection::GetNumberOfProjections() )
+-     return nullptr;
+- 
+--  return pj_get_list_ref()[projection].descr[0];
+-+  return proj_list_operations()[projection].descr[0];
+- }
+- //-----------------------------------------------------------------------------
+- vtkGeoProjection::vtkGeoProjection()
+-@@ -144,7 +147,7 @@ void vtkGeoProjection::PrintSelf( ostream& os, vtkIndent indent )
+- int vtkGeoProjection::GetIndex()
+- {
+-   int i = 0;
+--  for ( const PJ_LIST* proj = pj_get_list_ref(); proj && proj->id; ++ proj, ++ i )
+-+  for ( const PJ_LIST* proj = proj_list_operations(); proj && proj->id; ++ proj, ++ i )
+-   {
+-     if ( ! strcmp( proj->id, this->Name ) )
+-     {
+-@@ -161,7 +164,11 @@ const char* vtkGeoProjection::GetDescription()
+-   {
+-     return nullptr;
+-   }
+-+#if PROJ_VERSION_MAJOR >= 5
+-+  return this->Internals->ProjInfo.description;
+-+#else
+-   return this->Projection->descr;
+-+#endif
+- }
+- //-----------------------------------------------------------------------------
+- projPJ vtkGeoProjection::GetProjection()
+-@@ -232,6 +239,9 @@ int vtkGeoProjection::UpdateProjection()
+-   this->ProjectionMTime = this->GetMTime();
+-   if ( this->Projection )
+-   {
+-+#if PROJ_VERSION_MAJOR >= 5
+-+    this->Internals->ProjInfo = proj_pj_info(this->Projection);
+-+#endif
+-     return 0;
+-   }
+-   return 1;
+-diff --git a/Geovis/Core/vtkGeoTransform.cxx b/Geovis/Core/vtkGeoTransform.cxx
+-index aeeabc1..b80a8c0 100644
+---- a/Geovis/Core/vtkGeoTransform.cxx
+-+++ b/Geovis/Core/vtkGeoTransform.cxx
+-@@ -167,9 +167,17 @@ void vtkGeoTransform::InternalTransformPoints( double* x, vtkIdType numPts, int
+-     double* coord = x;
+-     for ( vtkIdType i = 0; i < numPts; ++ i )
+-     {
+-+#if PROJ_VERSION_MAJOR >= 5
+-+      xy.x = coord[0]; xy.y = coord[1];
+-+#else
+-       xy.u = coord[0]; xy.v = coord[1];
+-+#endif
+-       lp = pj_inv( xy, src );
+-+#if PROJ_VERSION_MAJOR >= 5
+-+      coord[0] = lp.lam; coord[1] = lp.phi;
+-+#else
+-       coord[0] = lp.u; coord[1] = lp.v;
+-+#endif
+-       coord += stride;
+-     }
+-   }
+-@@ -191,9 +199,17 @@ void vtkGeoTransform::InternalTransformPoints( double* x, vtkIdType numPts, int
+-     double* coord = x;
+-     for ( vtkIdType i = 0; i < numPts; ++ i )
+-     {
+-+#if PROJ_VERSION_MAJOR >= 5
+-+      lp.lam = coord[0]; lp.phi = coord[1];
+-+#else
+-       lp.u = coord[0]; lp.v = coord[1];
+-+#endif
+-       xy = pj_fwd( lp, dst );
+-+#if PROJ_VERSION_MAJOR >= 5
+-+      coord[0] = xy.x; coord[1] = xy.y;
+-+#else
+-       coord[0] = xy.u; coord[1] = xy.v;
+-+#endif
+-       coord += stride;
+-     }
+-   }
+-diff --git a/ThirdParty/libproj/CMakeLists.txt b/ThirdParty/libproj/CMakeLists.txt
+-index a19609e..e23e44b 100644
+---- a/ThirdParty/libproj/CMakeLists.txt
+-+++ b/ThirdParty/libproj/CMakeLists.txt
+-@@ -1,4 +1,9 @@
+- vtk_module_third_party(LibPROJ
+-   LIBRARIES vtklibproj
+-+  USE_VARIABLES LibPROJ_MAJOR_VERSION
+-   INCLUDE_DIRS ${vtklibproj_SOURCE_DIR}/vtklibproj
+-                ${vtklibproj_BINARY_DIR}/vtklibproj)
+-+
+-+if (NOT VTK_MODULE_USE_EXTERNAL_VTK_libproj)
+-+  set(LibPROJ_MAJOR_VERSION "4")
+-+endif ()
+-\ No newline at end of file
+-diff --git a/ThirdParty/libproj/vtk_libproj.h.in b/ThirdParty/libproj/vtk_libproj.h.in
+-index cd9edc3..d441a1a 100644
+---- a/ThirdParty/libproj/vtk_libproj.h.in
+-+++ b/ThirdParty/libproj/vtk_libproj.h.in
+-@@ -17,8 +17,23 @@
+- 
+- /* Use the libproj library configured for VTK.  */
+- #cmakedefine VTK_USE_SYSTEM_LIBPROJ
+-+
+-+#define VTK_LibPROJ_MAJOR_VERSION @LibPROJ_MAJOR_VERSION@
+-+
+-+#if VTK_LibPROJ_MAJOR_VERSION < 5
+-+# define PROJ_VERSION_MAJOR @LibPROJ_MAJOR_VERSION@
+-+# define proj_list_operations pj_get_list_ref
+-+#endif
+- #ifdef VTK_USE_SYSTEM_LIBPROJ
+--# include <projects.h>
+-+# if VTK_LibPROJ_MAJOR_VERSION >= 5
+-+#  include <proj.h>
+-+# endif
+-+# if VTK_LibPROJ_MAJOR_VERSION < 6
+-+#  include <projects.h>
+-+# endif
+-+# if VTK_LibPROJ_MAJOR_VERSION >= 6
+-+#  define ACCEPT_USE_OF_DEPRECATED_PROJ_API_H 1
+-+# endif
+- # include <proj_api.h>
+- # include <geodesic.h>
+- #else
+-diff --git a/CMake/FindLibPROJ.cmake b/CMake/FindLibPROJ.cmake
+-index 2d8301d..d8d08cd 100644
+---- a/CMake/FindLibPROJ.cmake
+-+++ b/CMake/FindLibPROJ.cmake
+-@@ -5,6 +5,14 @@
+- #   LibPROJ_LIBRARIES   to libproj4 and any dependent libraries
+- # If LibPROJ_REQUIRED is defined, then a fatal error message will be generated if libproj4 is not found
+- 
+-+find_package(PROJ4 6 CONFIG REQUIRED)
+-+if (PROJ4_FOUND)
+-+    set(LibPROJ_FOUND 1)
+-+    set(LibPROJ_INCLUDE_DIR ${PROJ4_INCLUDE_DIRS})
+-+    set(LibPROJ_LIBRARIES ${PROJ_LIBRARY})
+-+    set(LibPROJ_MAJOR_VERSION 6)
+-+endif()
+-+
+- if ( NOT LibPROJ_INCLUDE_DIR OR NOT LibPROJ_LIBRARIES OR NOT LibPROJ_FOUND )
+- 
+-   if ( $ENV{LibPROJ_DIR} )
+diff --git a/ports/vtk/fix-pugixml-link.patch b/ports/vtk/fix-pugixml-link.patch
+deleted file mode 100644
+index b928420..0000000
+--- a/ports/vtk/fix-pugixml-link.patch
++++ /dev/null
+@@ -1,14 +0,0 @@
+-diff --git a/IO/CityGML/CMakeLists.txt b/IO/CityGML/CMakeLists.txt
+-index ce979ba..322e2de 100644
+---- a/IO/CityGML/CMakeLists.txt
+-+++ b/IO/CityGML/CMakeLists.txt
+-@@ -4,8 +4,5 @@ vtk_module_library(vtkIOCityGML ${Module_SRCS})
+- # pugixml does not set _INCLUDE_DIRS or _LIBRARIES
+- if(VTK_USE_SYSTEM_PUGIXML AND NOT pugixml_INCLUDE_DIRS)
+-   find_package(pugixml REQUIRED)
+--  get_target_property(pugixml_INCLUDE_DIRS pugixml INTERFACE_INCLUDE_DIRECTORIES)
+--  get_target_property(pugixml_LIBRARIES pugixml LOCATION)
+--  include_directories(${pugixml_INCLUDE_DIRS})
+--  vtk_module_link_libraries(vtkIOCityGML LINK_PRIVATE ${pugixml_LIBRARIES})
+-+  vtk_module_link_libraries(vtkIOCityGML LINK_PRIVATE pugixml)
+- endif()
+diff --git a/ports/vtk/fix_ogg_linkage.patch b/ports/vtk/fix_ogg_linkage.patch
+deleted file mode 100644
+index c7f22f4..0000000
+--- a/ports/vtk/fix_ogg_linkage.patch
++++ /dev/null
+@@ -1,12 +0,0 @@
+-diff --git a/IO/Movie/module.cmake b/IO/Movie/module.cmake
+-index 4275171..88204ad 100644
+---- a/IO/Movie/module.cmake
+-+++ b/IO/Movie/module.cmake
+-@@ -14,6 +14,7 @@ vtk_module(vtkIOMovie
+-     vtkIO
+-   DEPENDS
+-     ${vtkIOMovie_vtkoggtheora}
+-+    vtkogg
+-     vtkCommonExecutionModel
+-   PRIVATE_DEPENDS
+-     vtkCommonCore
+diff --git a/ports/vtk/hdf5_static.patch b/ports/vtk/hdf5_static.patch
+deleted file mode 100644
+index 52ade3f..0000000
+--- a/ports/vtk/hdf5_static.patch
++++ /dev/null
+@@ -1,22 +0,0 @@
+-diff --git a/CMake/FindHDF5.cmake b/CMake/FindHDF5.cmake
+-index 6d558e39..c301e165 100644
+---- a/CMake/FindHDF5.cmake	
+-+++ b/CMake/FindHDF5.cmake
+-@@ -8,7 +8,16 @@ if(CMAKE_VERSION VERSION_LESS 3.6.1)
+- else()
+-   include(${CMAKE_ROOT}/Modules/FindHDF5.cmake)
+- endif()
+--
+-+#It would be better if VTK would actually use HDF5 & SZIP targets. 
+-+#But current module load order is wrong which will lead to the target being used before it is defined!
+-+if("${HDF5_LIBRARIES}" MATCHES "libhdf5")
+-+    find_library(SZIP_LIBRARY_RELEASE NAMES sz libsz szip libszip NAMES_PER_DIR)
+-+    find_library(SZIP_LIBRARY_DEBUG NAMES sz_d libsz_d szip_d libszip_d NAMES_PER_DIR)
+-+    select_library_configurations(SZIP)
+-+    list(APPEND HDF5_LIBRARIES "${SZIP_LIBRARIES}")
+-+    find_package(ZLIB)
+-+    list(APPEND HDF5_LIBRARIES "${ZLIB_LIBRARIES}")
+-+endif()
+- if(HDF5_FOUND AND (HDF5_IS_PARALLEL OR HDF5_ENABLE_PARALLEL))
+-   include(vtkMPI)
+-   if(MPI_C_INCLUDE_PATH)
+diff --git a/ports/vtk/portfile.cmake b/ports/vtk/portfile.cmake
+index b60d686..adfb0f3 100644
+--- a/ports/vtk/portfile.cmake
++++ b/ports/vtk/portfile.cmake
+@@ -1,230 +1,237 @@
+-if(VCPKG_CMAKE_SYSTEM_NAME AND NOT VCPKG_CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
++if(NOT VCPKG_TARGET_IS_WINDOWS)
+     message(WARNING "You will need to install Xorg dependencies to build vtk:\napt-get install libxt-dev\n")
+ endif()
+ 
+-include(vcpkg_common_functions)
++# TODO:
++# - add loguru as a dependency requires #8682
+ 
+-set(VTK_SHORT_VERSION "8.2")
+-set(VTK_LONG_VERSION "${VTK_SHORT_VERSION}.0")
+ # =============================================================================
+ # Options:
++# Collect CMake options for optional components
++if("qt" IN_LIST FEATURES)
++    list(APPEND ADDITIONAL_OPTIONS
++        -DVTK_GROUP_ENABLE_Qt=YES
++        -DVTK_MODULE_ENABLE_VTK_GUISupportQt=YES
++        -DVTK_MODULE_ENABLE_VTK_GUISupportQtSQL=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingQt=YES
++        -DVTK_MODULE_ENABLE_VTK_ViewsQt=YES
++    )
+ 
+-if ("qt" IN_LIST FEATURES)
+-    set(VTK_WITH_QT                      ON )
+-else()
+-    set(VTK_WITH_QT                      OFF )
+ endif()
+-
+-if ("mpi" IN_LIST FEATURES)
+-    set(VTK_Group_MPI ON)
+-else()
+-    set(VTK_Group_MPI OFF)
++if("atlmfc" IN_LIST FEATURES)
++    list(APPEND ADDITIONAL_OPTIONS
++        -DVTK_MODULE_ENABLE_VTK_GUISupportMFC=YES
++    )
+ endif()
+-
+-if ("python" IN_LIST FEATURES)
+-    set(VTK_WITH_PYTHON                  ON)
+-else()
+-    set(VTK_WITH_PYTHON                  OFF)
++if("vtkm" IN_LIST FEATURES)
++    list(APPEND ADDITIONAL_OPTIONS
++        -DVTK_MODULE_ENABLE_VTK_AcceleratorsVTKmCore=YES
++        -DVTK_MODULE_ENABLE_VTK_AcceleratorsVTKmDataModel=YES
++        -DVTK_MODULE_ENABLE_VTK_AcceleratorsVTKmFilters=YES
++        -DVTK_MODULE_ENABLE_VTK_vtkm=YES
++    )
+ endif()
+ 
+-if("openvr" IN_LIST FEATURES)
+-    set(Module_vtkRenderingOpenVR ON)
+-else()
+-    set(Module_vtkRenderingOpenVR OFF)
++if("python" IN_LIST FEATURES)
++    vcpkg_find_acquire_program(PYTHON3)
++    list(APPEND ADDITIONAL_OPTIONS
++        -DVTK_WRAP_PYTHON=ON
++        -DVTK_PYTHON_VERSION=3
++        -DPython3_FIND_REGISTRY=NEVER
++        "-DPython3_EXECUTABLE:PATH=${PYTHON3}"
++        -DVTK_MODULE_ENABLE_VTK_Python=YES
++        -DVTK_MODULE_ENABLE_VTK_PythonContext2D=YES
++        -DVTK_MODULE_ENABLE_VTK_PythonInterpreter=YES
++    )
++    #VTK_PYTHON_SITE_PACKAGES_SUFFIX should be set to the install dir of the site-packages
+ endif()
+ 
+-set(VTK_WITH_ALL_MODULES                 OFF) # IMPORTANT: if ON make sure `qt5`, `mpi`, `python3`, `ffmpeg`, `gdal`, `fontconfig`,
+-                                              #            `libmysql` and `atlmfc` are  listed as dependency in the CONTROL file
+-
+-# =============================================================================
+-# Clone & patch
+-vcpkg_from_github(
+-    OUT_SOURCE_PATH SOURCE_PATH
+-    REPO Kitware/VTK
+-    REF "v${VTK_LONG_VERSION}"
+-    SHA512 fd1d9c2872baa6eca7f8105b0057b56ec554e9d5eaf25985302e7fc032bdce72255d79e3f5f16ca50504151bda49cb3a148272ba32e0f410b4bdb70959b8f3f4
+-    HEAD_REF master
+-    PATCHES
+-        fix-find-lz4.patch
+-        fix_ogg_linkage.patch
+-        fix-pugixml-link.patch
+-        hdf5_static.patch
+-        fix-find-lzma.patch
+-		fix-proj4.patch
+-)
++if("paraview" IN_LIST FEATURES)
++    list(APPEND ADDITIONAL_OPTIONS
++        -DVTK_MODULE_ENABLE_VTK_FiltersParallelStatistics=YES
++        -DVTK_MODULE_ENABLE_VTK_IOParallelExodus=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingParallel=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingVolumeAMR=YES
++        -DVTK_MODULE_ENABLE_VTK_IOXdmf2=YES
++        -DVTK_MODULE_ENABLE_VTK_IOH5part=YES
++        -DVTK_MODULE_ENABLE_VTK_IOParallelLSDyna=YES
++        -DVTK_MODULE_ENABLE_VTK_IOTRUCHAS=YES
++        -DVTK_MODULE_ENABLE_VTK_IOVPIC=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingLICOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingAnnotation=YES
++        -DVTK_MODULE_ENABLE_VTK_DomainsChemistry=YES
++        -DVTK_MODULE_ENABLE_VTK_DomainsChemistryOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_FiltersParallelDIY2=YES
++    )
++    if("python" IN_LIST FEATURES)
++        list(APPEND ADDITIONAL_OPTIONS
++            -DVTK_MODULE_ENABLE_VTK_RenderingMatplotlib=YES
++        )
++    endif()
++endif()
+ 
+-# Remove the FindGLEW.cmake and FindPythonLibs.cmake that are distributed with VTK,
+-# since they do not detect the debug libraries correctly.
+-# The default files distributed with CMake (>= 3.9) should be superior by all means.
+-# For GDAL, the one distributed with CMake does not detect the debug libraries correctly,
+-# so we provide an own one.
+-file(REMOVE ${SOURCE_PATH}/CMake/FindGLEW.cmake)
+-file(REMOVE ${SOURCE_PATH}/CMake/FindPythonLibs.cmake)
++if("mpi" IN_LIST FEATURES)
++    list(APPEND ADDITIONAL_OPTIONS
++        -DVTK_GROUP_ENABLE_MPI=YES
++        -DVTK_USE_MPI=YES
++    )
++endif()
+ 
+-file(COPY ${CMAKE_CURRENT_LIST_DIR}/FindGDAL.cmake DESTINATION ${SOURCE_PATH}/CMake)
++if("mpi" IN_LIST FEATURES AND "python" IN_LIST FEATURES)
++    list(APPEND ADDITIONAL_OPTIONS
++        -DVTK_MODULE_USE_EXTERNAL_VTK_mpi4py=OFF
++    )
++endif()
+ 
+-# =============================================================================
+-# Collect CMake options for optional components
+-if(VTK_WITH_QT)
++if("opengl" IN_LIST FEATURES)
+     list(APPEND ADDITIONAL_OPTIONS
+-        -DVTK_Group_Qt=ON
+-        -DVTK_QT_VERSION=5
+-        -DVTK_BUILD_QT_DESIGNER_PLUGIN=OFF
++        -DVTK_MODULE_ENABLE_VTK_DomainsChemistryOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_ImagingOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingGL2PSOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingLICOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_RenderingVolumeOpenGL2=YES
++        -DVTK_MODULE_ENABLE_VTK_opengl=YES
++        )
++endif()
++
++if ("openvr" IN_LIST FEATURES)
++    list(APPEND ADDITIONAL_OPTIONS    
++        -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR=YES
+     )
+ endif()
+ 
+-if(VTK_WITH_PYTHON)
+-    vcpkg_find_acquire_program(PYTHON3)
++if("cuda" IN_LIST FEATURES AND CMAKE_HOST_WIN32)
++    vcpkg_add_to_path("$ENV{CUDA_PATH}/bin")
++endif()
++
++if("utf8" IN_LIST FEATURES)
+     list(APPEND ADDITIONAL_OPTIONS
+-        -DVTK_WRAP_PYTHON=ON
+-        -DVTK_PYTHON_VERSION=3
++        -DKWSYS_ENCODING_DEFAULT_CODEPAGE=CP_UTF8
+     )
+ endif()
+ 
+-if(VTK_WITH_ALL_MODULES)
++if("all" IN_LIST FEATURES)
+     list(APPEND ADDITIONAL_OPTIONS
+-        -DVTK_BUILD_ALL_MODULES=ON
+         -DVTK_USE_TK=OFF # TCL/TK currently not included in vcpkg
+-        # -DVTK_USE_SYSTEM_AUTOBAHN=ON
+-        # -DVTK_USE_SYSTEM_SIX=ON
+-        # -DVTK_USE_SYSTEM_MPI4PY=ON
+-        # -DVTK_USE_SYSTEM_CONSTANTLY=ON
+-        # -DVTK_USE_SYSTEM_INCREMENTAL=ON
+-        # -DVTK_USE_SYSTEM_TWISTED=ON
+-        # -DVTK_USE_SYSTEM_XDMF2=ON
+-        # -DVTK_USE_SYSTEM_XDMF3=ON
+-        # -DVTK_USE_SYSTEM_ZFP=ON
+-        # -DVTK_USE_SYSTEM_ZOPE=ON
+     )
+ endif()
+ 
+-if(NOT VCPKG_CMAKE_SYSTEM_NAME)
+-    set(Module_vtkGUISupportMFC ON)
+-else()
+-    set(Module_vtkGUISupportMFC OFF)
+-endif()
++vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
++    FEATURES
++        "cuda"         VTK_USE_CUDA
++        "all"          VTK_BUILD_ALL_MODULES
++)
++
++
++# =============================================================================
++# Clone & patch
++
++
++vcpkg_from_github(
++    OUT_SOURCE_PATH SOURCE_PATH
++    REPO Kitware/VTK
++    REF 2959413ff190bc6e3ff40f5b6c1342edd2e5233f # v9.0.x used by ParaView 5.9.1
++    SHA512 16229c107ed904e8fa6850c3814b8bdcdf9700ef44f6ff5b3a77e7d793ce19954fc2c7b1219a0162cf588def6e990883cd3f808c316a4db6e65bd6cd1769dd3f
++    HEAD_REF master
++    PATCHES
++        FindLZMA.patch
++        FindLZ4.patch
++        Findproj.patch
++        pegtl.patch
++        pythonwrapper.patch # Required by ParaView to Wrap required classes
++        NoUndefDebug.patch # Required to link against correct Python library depending on build type.
++        python_debug.patch
++        fix-using-hdf5.patch
++        # CHECK: module-name-mangling.patch
++        # Last patch TODO: Patch out internal loguru
++        FindExpat.patch # The find_library calls are taken care of by vcpkg-cmake-wrapper.cmake of expat
++        # upstream vtkm patches to make it work with vtkm 1.6
++        vtkm.patch # To include an external VTKm build
++        1f00a0c9.patch
++        156fb524.patch
++        d107698a.patch
++)
++
++# =============================================================================
++#Overwrite outdated modules if they have not been patched:
++file(COPY "${CURRENT_PORT_DIR}/FindHDF5.cmake" DESTINATION "${SOURCE_PATH}/CMake/patches/99") # due to usage of targets in netcdf-c
++# =============================================================================
+ 
+ # =============================================================================
+ # Configure & Install
+ 
+-vcpkg_configure_cmake(
++# We set all libraries to "system" and explicitly list the ones that should use embedded copies
++vcpkg_cmake_configure(
+     SOURCE_PATH ${SOURCE_PATH}
+-    PREFER_NINJA
+-    OPTIONS
++    OPTIONS ${FEATURE_OPTIONS}
+         -DBUILD_TESTING=OFF
+-        -DBUILD_EXAMPLES=OFF
+-        -DVTK_INSTALL_INCLUDE_DIR=include
+-        -DVTK_INSTALL_DATA_DIR=share/vtk/data
+-        -DVTK_INSTALL_DOC_DIR=share/vtk/doc
+-        -DVTK_INSTALL_PACKAGE_DIR=share/vtk
+-        -DVTK_INSTALL_RUNTIME_DIR=bin
++        -DVTK_BUILD_TESTING=OFF
++        -DVTK_BUILD_EXAMPLES=OFF
+         -DVTK_FORBID_DOWNLOADS=ON
+-
+-        # We set all libraries to "system" and explicitly list the ones that should use embedded copies
+-        -DVTK_USE_SYSTEM_LIBRARIES=ON
+-        -DVTK_USE_SYSTEM_GL2PS=OFF
+-
++        -DVTK_ENABLE_REMOTE_MODULES=OFF
++        # VTK groups to enable
++        -DVTK_GROUP_ENABLE_StandAlone=YES
++        -DVTK_GROUP_ENABLE_Rendering=YES
++        -DVTK_GROUP_ENABLE_Views=YES
++        # Disable deps not in VCPKG
++        -DVTK_USE_TK=OFF # TCL/TK currently not included in vcpkg
+         # Select modules / groups to install
+-        -DVTK_Group_Imaging=ON
+-        -DVTK_Group_Views=ON
+-        -DModule_vtkGUISupportMFC=${Module_vtkGUISupportMFC}
+-        -DModule_vtkRenderingOpenVR=${Module_vtkRenderingOpenVR}
+-        -DVTK_Group_MPI=${VTK_Group_MPI}
+-        -DPYTHON_EXECUTABLE=${PYTHON3}
+-
++        -DVTK_USE_EXTERNAL:BOOL=ON
++        -DVTK_MODULE_USE_EXTERNAL_VTK_gl2ps:BOOL=OFF # Not yet in VCPKG
+         ${ADDITIONAL_OPTIONS}
+ )
+ 
+-vcpkg_install_cmake()
++vcpkg_cmake_install()
+ vcpkg_copy_pdbs()
+ 
+ # =============================================================================
+ # Fixup target files
+-vcpkg_fixup_cmake_targets()
+-
+-# For some reason the references to the XDMF libraries in the target files do not end up
+-# correctly, so we fix them here.
+-if(VTK_WITH_ALL_MODULES)
+-    file(READ ${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-release.cmake VTK_TARGETS_RELEASE_CONTENT)
+-    string(REPLACE "lib/../XdmfCore.lib" "lib/XdmfCore.lib" VTK_TARGETS_RELEASE_CONTENT "${VTK_TARGETS_RELEASE_CONTENT}")
+-    string(REPLACE "bin/../XdmfCore.dll" "bin/XdmfCore.dll" VTK_TARGETS_RELEASE_CONTENT "${VTK_TARGETS_RELEASE_CONTENT}")
+-    string(REPLACE "lib/../vtkxdmf3.lib" "lib/vtkxdmf3.lib" VTK_TARGETS_RELEASE_CONTENT "${VTK_TARGETS_RELEASE_CONTENT}")
+-    string(REPLACE "bin/../vtkxdmf3.dll" "bin/vtkxdmf3.dll" VTK_TARGETS_RELEASE_CONTENT "${VTK_TARGETS_RELEASE_CONTENT}")
+-    file(WRITE ${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-release.cmake "${VTK_TARGETS_RELEASE_CONTENT}")
+-
+-    file(READ ${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-debug.cmake VTK_TARGETS_DEBUG_CONTENT)
+-    string(REPLACE "lib/../XdmfCore.lib" "lib/XdmfCore.lib" VTK_TARGETS_DEBUG_CONTENT "${VTK_TARGETS_DEBUG_CONTENT}")
+-    string(REPLACE "bin/../XdmfCore.dll" "bin/XdmfCore.dll" VTK_TARGETS_DEBUG_CONTENT "${VTK_TARGETS_DEBUG_CONTENT}")
+-    string(REPLACE "lib/../vtkxdmf3.lib" "lib/vtkxdmf3.lib" VTK_TARGETS_DEBUG_CONTENT "${VTK_TARGETS_DEBUG_CONTENT}")
+-    string(REPLACE "bin/../vtkxdmf3.dll" "bin/vtkxdmf3.dll" VTK_TARGETS_DEBUG_CONTENT "${VTK_TARGETS_DEBUG_CONTENT}")
+-    file(WRITE ${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-debug.cmake "${VTK_TARGETS_DEBUG_CONTENT}")
+-endif()
+-
+-#file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets.cmake" VTK_TARGETS_CONTENT)
+-# Remove unset of _IMPORT_PREFIX in VTKTargets.cmake
+-#_IMPORT_PREFIX is required by vtkModules due to vcpkg_fixup_cmake_targets changing all cmake files (to use _IMPORT_PREFIX). 
+-#STRING(REPLACE [[set(_IMPORT_PREFIX)]] 
+-#[[
+-# VCPKG: The value of _IMPORT_PREFIX should not be unset.
+-#set(_IMPORT_PREFIX)
+-#]]
+-#VTK_TARGETS_CONTENT "${VTK_TARGETS_CONTENT}")
+-#file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets.cmake" "${VTK_TARGETS_CONTENT}")
+-
+-#file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets.cmake" VTK_TARGETS_CONTENT)
+-
+-# Fix _IMPORT_PREFIX. It is not set within the Modules cmake (only set in VTKTargets.cmake).
+-# Since for VCPKG _IMPORT_PREFIX == VTK_INSTALL_PREFIX we just replace it with that.
+-file(GLOB_RECURSE CMAKE_FILES ${CURRENT_PACKAGES_DIR}/share/vtk/Modules/*.cmake)
+-foreach(FILE IN LISTS CMAKE_FILES)
+-    file(READ "${FILE}" _contents)
+-    string(REPLACE "\${_IMPORT_PREFIX}" "\${VTK_INSTALL_PREFIX}" _contents "${_contents}")
+-    file(WRITE "${FILE}" "${_contents}")
+-endforeach()
++vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/vtk-9.0)
+ 
+ # =============================================================================
+ # Clean-up other directories
+ 
+ # Delete the debug binary TOOL_NAME that is not required
+ function(_vtk_remove_debug_tool TOOL_NAME)
+-    # on windows, the tools end with .exe
+-    set(filename_win ${CURRENT_PACKAGES_DIR}/debug/bin/${TOOL_NAME}.exe)
+-    if(EXISTS ${filename_win})
+-        file(REMOVE ${filename_win})
++    set(filename "${CURRENT_PACKAGES_DIR}/debug/bin/${TOOL_NAME}${VCPKG_TARGET_EXECUTABLE_SUFFIX}")
++    if(EXISTS "${filename}")
++        file(REMOVE "${filename}")
++    endif()
++    set(filename "${CURRENT_PACKAGES_DIR}/debug/bin/${TOOL_NAME}d${VCPKG_TARGET_EXECUTABLE_SUFFIX}")
++    if(EXISTS "${filename}")
++        file(REMOVE "${filename}")
+     endif()
+-    # on other OS, it doesn't
+-    set(filename_unix ${CURRENT_PACKAGES_DIR}/debug/bin/${TOOL_NAME})
+-    if(EXISTS ${filename_unix})
+-        file(REMOVE ${filename_unix})
++    if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL debug)
++        # we also have to bend the lines referencing the tools in VTKTargets-debug.cmake
++        # to make them point to the release version of the tools
++        file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/VTK-targets-debug.cmake" VTK_TARGETS_CONTENT_DEBUG)
++        string(REPLACE "debug/bin/${TOOL_NAME}" "tools/vtk/${TOOL_NAME}" VTK_TARGETS_CONTENT_DEBUG "${VTK_TARGETS_CONTENT_DEBUG}")
++        string(REPLACE "tools/vtk/${TOOL_NAME}d" "tools/vtk/${TOOL_NAME}" VTK_TARGETS_CONTENT_DEBUG "${VTK_TARGETS_CONTENT_DEBUG}")
++        file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/VTK-targets-debug.cmake" "${VTK_TARGETS_CONTENT_DEBUG}")
+     endif()
+-    # we also have to bend the lines referencing the tools in VTKTargets-debug.cmake
+-    # to make them point to the release version of the tools
+-    file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-debug.cmake" VTK_TARGETS_CONTENT_DEBUG)
+-    string(REPLACE "debug/bin/${TOOL_NAME}" "tools/vtk/${TOOL_NAME}" VTK_TARGETS_CONTENT_DEBUG "${VTK_TARGETS_CONTENT_DEBUG}")
+-    file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-debug.cmake" "${VTK_TARGETS_CONTENT_DEBUG}")
+ endfunction()
+ 
+ # Move the release binary TOOL_NAME from bin to tools
+ function(_vtk_move_release_tool TOOL_NAME)
+-    # on windows, the tools end with .exe
+-    set(old_filename_win "${CURRENT_PACKAGES_DIR}/bin/${TOOL_NAME}.exe")
+-    if(EXISTS ${old_filename_win})
+-        file(INSTALL ${old_filename_win} DESTINATION "${CURRENT_PACKAGES_DIR}/tools/vtk")
+-        file(REMOVE ${old_filename_win})
++    set(old_filename "${CURRENT_PACKAGES_DIR}/bin/${TOOL_NAME}${VCPKG_TARGET_EXECUTABLE_SUFFIX}")
++    if(EXISTS "${old_filename}")
++        file(INSTALL "${old_filename}" DESTINATION "${CURRENT_PACKAGES_DIR}/tools/vtk" USE_SOURCE_PERMISSIONS)
++        file(REMOVE "${old_filename}")
+     endif()
+-    # on other OS, it doesn't
+-    set(old_filename_unix "${CURRENT_PACKAGES_DIR}/bin/${TOOL_NAME}")
+-    if(EXISTS ${old_filename_unix})
+-        file(INSTALL ${old_filename_unix} DESTINATION "${CURRENT_PACKAGES_DIR}/tools/vtk")
+-        file(REMOVE ${old_filename_unix})
++
++    if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL release)
++        # we also have to bend the lines referencing the tools in VTKTargets-release.cmake
++        # to make them point to the tool folder
++        file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/VTK-targets-release.cmake" VTK_TARGETS_CONTENT_RELEASE)
++        string(REPLACE "bin/${TOOL_NAME}" "tools/vtk/${TOOL_NAME}" VTK_TARGETS_CONTENT_RELEASE "${VTK_TARGETS_CONTENT_RELEASE}")
++        file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/VTK-targets-release.cmake" "${VTK_TARGETS_CONTENT_RELEASE}")
+     endif()
+-    # we also have to bend the lines referencing the tools in VTKTargets-release.cmake
+-    # to make them point to the tool folder
+-    file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-release.cmake" VTK_TARGETS_CONTENT_RELEASE)
+-    string(REPLACE "bin/${TOOL_NAME}" "tools/vtk/${TOOL_NAME}" VTK_TARGETS_CONTENT_RELEASE "${VTK_TARGETS_CONTENT_RELEASE}")
+-    file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/VTKTargets-release.cmake" "${VTK_TARGETS_CONTENT_RELEASE}")
+ endfunction()
+ 
++set(VTK_SHORT_VERSION 9.0)
+ set(VTK_TOOLS
+     vtkEncodeString-${VTK_SHORT_VERSION}
+     vtkHashSource-${VTK_SHORT_VERSION}
+@@ -236,38 +243,75 @@ set(VTK_TOOLS
+     vtkWrapHierarchy-${VTK_SHORT_VERSION}
+     vtkParseJava-${VTK_SHORT_VERSION}
+     vtkParseOGLExt-${VTK_SHORT_VERSION}
++    vtkProbeOpenGLVersion-${VTK_SHORT_VERSION}
++    vtkTestOpenGLVersion-${VTK_SHORT_VERSION}
+     vtkpython
+     pvtkpython
+ )
+-
++# TODO: Replace with vcpkg_copy_tools if known which tools are built with which feature
++# or add and option to vcpkg_copy_tools which does not require the tool to be present
+ foreach(TOOL_NAME IN LISTS VTK_TOOLS)
+     _vtk_remove_debug_tool("${TOOL_NAME}")
+     _vtk_move_release_tool("${TOOL_NAME}")
+ endforeach()
+ 
+-file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/Modules/vtkhdf5.cmake" _contents)
+-string(REPLACE "vtk::hdf5::hdf5_hl" "" _contents "${_contents}")
+-string(REPLACE "vtk::hdf5::hdf5" "" _contents "${_contents}")
+-file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/Modules/vtkhdf5.cmake" "${_contents}")
++if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
++    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin"
++                        "${CURRENT_PACKAGES_DIR}/debug/bin")
++endif()
++
++file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
++file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
++
++vcpkg_copy_tool_dependencies("${CURRENT_PACKAGES_DIR}/tools/vtk")
++
++## Files Modules needed by ParaView
++if("paraview" IN_LIST FEATURES)
++    set(VTK_CMAKE_NEEDED vtkCompilerChecks vtkCompilerPlatformFlags vtkCompilerExtraFlags vtkInitializeBuildType
++                         vtkSupportMacros vtkVersion FindPythonModules vtkModuleDebugging vtkExternalData)
++    foreach(module ${VTK_CMAKE_NEEDED})
++        file(INSTALL "${SOURCE_PATH}/CMake/${module}.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/vtk")
++    endforeach()
++
++    ## Check List on UPDATE !!
++    file(INSTALL "${SOURCE_PATH}/CMake/vtkRequireLargeFilesSupport.cxx" DESTINATION "${CURRENT_PACKAGES_DIR}/share/vtk")
++    file(INSTALL "${SOURCE_PATH}/Rendering/Volume/vtkBlockSortHelper.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include/vtk-${VTK_SHORT_VERSION}") # this should get installed by VTK
++    file(INSTALL "${SOURCE_PATH}/Filters/ParallelDIY2/vtkDIYKdTreeUtilities.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include/vtk-${VTK_SHORT_VERSION}")
++    file(INSTALL "${SOURCE_PATH}/Parallel/DIY/vtkDIYUtilities.txx" DESTINATION "${CURRENT_PACKAGES_DIR}/include/vtk-${VTK_SHORT_VERSION}")
++
++    file(INSTALL "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/Rendering/OpenGL2/vtkTextureObjectVS.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include/vtk-${VTK_SHORT_VERSION}")
+ 
+-# =============================================================================
+-# Remove other files and directories that are not valid for vcpkg
+-if(VTK_WITH_ALL_MODULES)
+-    file(REMOVE ${CURRENT_PACKAGES_DIR}/XdmfConfig.cmake)
+-    file(REMOVE ${CURRENT_PACKAGES_DIR}/debug/XdmfConfig.cmake)
+ endif()
+ 
+ if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+-    file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/bin)
+-    file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/bin)
++    if(EXISTS ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/CMakeFiles/vtkpythonmodules/static_python) #python headers
++        file(GLOB_RECURSE STATIC_PYTHON_FILES "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/CMakeFiles/*/static_python/*.h")
++        file(INSTALL ${STATIC_PYTHON_FILES} DESTINATION ${CURRENT_PACKAGES_DIR}/include/vtk-${VTK_SHORT_VERSION})
++    endif()
+ endif()
+ 
+-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
+-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
++#remove one get_filename_component(_vtk_module_import_prefix "${_vtk_module_import_prefix}" DIRECTORY) from vtk-prefix.cmake and VTK-vtk-module-properties and vtk-python.cmake
++set(filenames_fix_prefix vtk-prefix VTK-vtk-module-properties vtk-python)
++foreach(name IN LISTS filenames_fix_prefix)
++if(EXISTS "${CURRENT_PACKAGES_DIR}/share/vtk/${name}.cmake")
++    file(READ "${CURRENT_PACKAGES_DIR}/share/vtk/${name}.cmake" _contents)
++    string(REPLACE
++[[set(_vtk_module_import_prefix "${CMAKE_CURRENT_LIST_DIR}")
++get_filename_component(_vtk_module_import_prefix "${_vtk_module_import_prefix}" DIRECTORY)]]
++[[set(_vtk_module_import_prefix "${CMAKE_CURRENT_LIST_DIR}")]] _contents "${_contents}")
++    file(WRITE "${CURRENT_PACKAGES_DIR}/share/vtk/${name}.cmake" "${_contents}")
++else()
++    debug_message("FILE:${CURRENT_PACKAGES_DIR}/share/vtk/${name}.cmake does not exist! No prefix correction!")
++endif()
++endforeach()
++
++# Use vcpkg provided find method
++file(REMOVE "${CURRENT_PACKAGES_DIR}/share/${PORT}/FindEXPAT.cmake")
++
++file(RENAME "${CURRENT_PACKAGES_DIR}/share/licenses" "${CURRENT_PACKAGES_DIR}/share/${PORT}/licenses")
+ 
+ # =============================================================================
++# Usage
++configure_file("${CMAKE_CURRENT_LIST_DIR}/usage" "${CURRENT_PACKAGES_DIR}/share/${PORT}/usage" COPYONLY)
+ # Handle copyright
+-file(COPY ${SOURCE_PATH}/Copyright.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/vtk)
+-file(RENAME ${CURRENT_PACKAGES_DIR}/share/vtk/Copyright.txt ${CURRENT_PACKAGES_DIR}/share/vtk/copyright)
+-
+-vcpkg_copy_tool_dependencies(${CURRENT_PACKAGES_DIR}/tools/vtk)
++file(INSTALL "${SOURCE_PATH}/Copyright.txt" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME "copyright")
+-- 
+2.8.1.windows.1
+

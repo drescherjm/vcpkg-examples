@@ -34,6 +34,8 @@
 #include "vtkResliceImageViewerMeasurements.h"
 #include "dicom/vtkDICOMReader.h"
 
+#include <vtkCamera.h>
+
 
 QtVTKRenderWindow::QtVTKRenderWindow(int vtkNotUsed(argc), char* argv[])
 {
@@ -70,18 +72,33 @@ QtVTKRenderWindow::QtVTKRenderWindow(int vtkNotUsed(argc), char* argv[])
 	riw->SetInputData(reader->GetOutput());
 	riw->SetSliceOrientation(vtkResliceImageViewer::SLICE_ORIENTATION_XY); // enum { SLICE_ORIENTATION_YZ = 0, SLICE_ORIENTATION_XZ = 1, SLICE_ORIENTATION_XY = 2 }
 	riw->SetResliceModeToAxisAligned();
-	riw->SetColorWindow(512);
-	riw->SetColorLevel(512);
+	riw->SetColorWindow(350);
+	riw->SetColorLevel(425);
 
+	riw->Render();
 
-	vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
-	picker->SetTolerance(0.005);
+	//riw->GetRenderer()->GetActiveCamera()->SetParallelScale(0.25);
 
-	vtkSmartPointer<vtkProperty> ipwProp = vtkSmartPointer<vtkProperty>::New();
-
-	vtkSmartPointer< vtkRenderer > ren = vtkSmartPointer< vtkRenderer >::New();
+// 	vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
+// 	picker->SetTolerance(0.005);
+// 
+// 	vtkSmartPointer<vtkProperty> ipwProp = vtkSmartPointer<vtkProperty>::New();
+// 
+// 	vtkSmartPointer< vtkRenderer > ren = vtkSmartPointer< vtkRenderer >::New();
 
 	this->ui->view->show();
+
+
+	auto pCamera = riw->GetRenderer()->GetActiveCamera();
+
+	if (pCamera) {
+		auto scale = pCamera->GetParallelScale();
+		std::cout << "Scale " << scale << std::endl;
+		pCamera->SetParallelScale(scale * 0.12);
+
+		riw->Print(std::cout);
+
+	}
 
 	// Set up action signals and slots
 	connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));

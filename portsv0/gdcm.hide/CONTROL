@@ -1,10 +1,7 @@
 Source: gdcm
-Version: 3.0.10
-Port-Version: 1
-Homepage: https://github.com/malaterre/GDCM
+Version: 3.0.3
 Description: Grassroots DICOM library
 Build-Depends: zlib, expat, openjpeg
-Supports: !uwp&!(windows&(arm|arm64))
 
 Feature: vtk
 Description: Build gdcm support library for vtk.

@@ -55,6 +55,5 @@ target_link_libraries(${LOCAL_PROJECT_NAME}
 	vtkDICOM
     Qt5::Widgets)
 	
-
 target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE Include)
 set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER vtk/Images)
