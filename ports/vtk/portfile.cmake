@@ -2,6 +2,9 @@ if(NOT VCPKG_TARGET_IS_WINDOWS)
     message(WARNING "You will need to install Xorg dependencies to build vtk:\napt-get install libxt-dev\n")
 endif()
 
+list(APPEND ADDITIONAL_OPTIONS -DVTK_DEBUG_LEAKS=YES)
+
+
 # TODO:
 # - add loguru as a dependency requires #8682
 
