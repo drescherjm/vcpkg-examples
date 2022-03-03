@@ -1,5 +1,6 @@
 #include "smSystemDisplayManager.h"
 #include "smSystemDisplay.h"
+#include <QGuiApplication>
 
 #define UNICODE
 #include <windows.h>
@@ -18,7 +19,11 @@ public:
 
 smSystemDisplayManager::smSystemDisplayManager(QObject* parent) : m_pPrivate{std::make_unique<smPrivate>()}
 {
-
+	auto pGUIApp = qGuiApp;
+	if (pGUIApp) {
+		connect(pGUIApp, SIGNAL(screenAdded(QScreen*)), this, SLOT(refresh()));
+		connect(pGUIApp, SIGNAL(screenRemoved(QScreen*)), this, SLOT(refresh()));
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -29,6 +34,13 @@ void smSystemDisplayManager::search(smSystemDisplay* pDisplay)
 		auto it = m_pPrivate->m_Map.find(pDisplay->getName().toStdString());
 		if (it != m_pPrivate->m_Map.end()) {
 			pDisplay->setInfo(it->second);
+		}
+		else {
+// 			emit refresh();
+// 			it = m_pPrivate->m_Map.find(pDisplay->getName().toStdString());
+// 			if (it != m_pPrivate->m_Map.end()) {
+// 				pDisplay->setInfo(it->second);
+// 			}
 		}
 	}
 }

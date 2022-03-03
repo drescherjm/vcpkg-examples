@@ -3,9 +3,15 @@
 #ifndef MONITORWIDGET_H
 #define MONITORWIDGET_H
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
 #include <QWidget>
 
 #include "ui_MonitorWidget.h"
+
+class smSystemDisplayManager;
+
+/////////////////////////////////////////////////////////////////////////////////////////
 
 class MonitorWidget : public QWidget, public Ui_MonitorWidget
 {
@@ -22,6 +28,11 @@ public:
 
 protected slots:
 	void	refreshDisplay();
+
+private:
+	std::shared_ptr<smSystemDisplayManager>		m_pDisplayManager;
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////
 
 #endif // MONITORWIDGET_H
