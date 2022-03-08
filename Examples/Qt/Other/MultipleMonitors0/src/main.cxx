@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
 
 	MonitorWidget mainWindow;
 
-	mainWindow.enumerateQtScreens();
-	mainWindow.enumerateWindowsScreens();
+// 	mainWindow.enumerateQtScreens();
+// 	mainWindow.enumerateWindowsScreens();
 
 	mainWindow.show();
 

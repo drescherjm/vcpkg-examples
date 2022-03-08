@@ -2,20 +2,27 @@
 #include <QTimer>
 #include <QScreen>
 #include <QDebug>
+#include <iostream>
 
 #define UNICODE
 #include <windows.h>
+#include "smSystemDisplayManager.h"
+#include "smSystemDisplay.h"
+
+//std::shared_ptr<smSystemDisplayManager> pDisplayManager{ std::make_shared<smSystemDisplayManager>() };
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-MonitorWidget::MonitorWidget(QWidget* parent /*= 0*/) : QWidget(parent)
+MonitorWidget::MonitorWidget(QWidget* parent /*= 0*/) : QWidget(parent), m_pDisplayManager{ std::make_shared<smSystemDisplayManager>() }
 {
 	setupUi(this);
+
+	emit m_pDisplayManager->refresh();
 
 	auto pTimer = new QTimer(this);
 	//pTimer->setInterval(1000);
 	connect(pTimer, SIGNAL(timeout()), this, SLOT(refreshDisplay()));
-	pTimer->start(1000);
+	pTimer->start(10000);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -81,8 +88,26 @@ void MonitorWidget::refreshDisplay()
 {
 	auto pScreen = screen();	
 	if (pScreen) {
-		lineEditScreen->setText(pScreen->name());
-		lineEditSerialNumber->setText(pScreen->serialNumber());
+// 		if (pScreen->serialNumber().isEmpty()) {
+// 			if (!pScreen->setProperty("serialNumber", QString("Test"))) {
+// 				std::cerr << "Could not modify the serialNumber" << std::endl;
+// 			}
+// 		}
+// 
+// 		lineEditScreen->setText(pScreen->name());
+// 		lineEditSerialNumber->setText(pScreen->serialNumber());
+
+
+		smSystemDisplay display;
+
+		display.setSystemDisplayManager(m_pDisplayManager);
+		display.initialize(pScreen);
+
+		lineEditName->setText(display.getName());
+		lineEditID->setText(display.getMonitorIDs());
+		lineEditKey->setText(display.getMonitorKeys());
+
+		enumerateQtScreens();
 	}
 }
 

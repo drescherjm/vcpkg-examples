@@ -10,6 +10,8 @@ find_qt5_packages()
 set(${LOCAL_PROJECT_NAME}_SRCS 
 	./src/main.cxx
 	./src/MonitorWidget.cxx
+	./src/smSystemDisplayManager.cxx
+	./src/smSystemDisplay.cxx
 )
 
 set(${LOCAL_PROJECT_NAME}_UIS 
@@ -22,6 +24,8 @@ set(${LOCAL_PROJECT_NAME}_HDRS
 
 set(${LOCAL_PROJECT_NAME}_MOC_HDRS
 	./Include/MonitorWidget.h
+	./Include/smSystemDisplayManager.h
+	./Include/smSystemDisplay.h
 )
 
 # and finally an resource file
