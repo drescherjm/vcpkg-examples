@@ -1,0 +1,10 @@
+
+option( BUILD_VTK_OTHER_EXAMPLES 		"Build the vtk other examples." ON)
+
+if(BUILD_VTK_OTHER_EXAMPLES)
+	SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+	FOREACH(subdir ${SUBDIRS})
+		ADD_SUBDIRECTORY(${subdir})
+	ENDFOREACH()
+endif()
