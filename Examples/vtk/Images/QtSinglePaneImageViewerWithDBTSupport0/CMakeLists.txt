@@ -28,13 +28,18 @@ find_package(VTK
 endif()
 
 if (NOT VTK_FOUND)
-  message("Skipping example: ${VTK_NOT_FOUND_MESSAGE}")
+  message("Skipping example: ${LOCAL_PROJECT_NAME} because VTK is not found.")
+  return ()
+endif ()
+
+if (NOT TARGET VTK::DICOM)
+  message("Skipping example: ${LOCAL_PROJECT_NAME} because VTK::DICOM is not found.")
   return ()
 endif ()
 
 find_package(Qt5 COMPONENTS Widgets)
 if (NOT TARGET Qt5::Widgets)
-  message("Skipping example: ${Qt5_NOT_FOUND_MESSAGE}")
+  message("Skipping example: ${LOCAL_PROJECT_NAME} because Qt::Widgets is not found.")
   return ()
 endif ()
 
