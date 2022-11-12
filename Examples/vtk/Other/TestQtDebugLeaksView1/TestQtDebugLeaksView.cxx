@@ -12,18 +12,20 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// Tests vtkQtDebugLeaksModel and vtkQtDebugLeaksView.
+// Tests myVtkQtDebugLeaksModel and myVtkQtDebugLeaksView.
 
 #include "vtkConeSource.h"
 #include "vtkDebug.h"
 #include "vtkDebugLeaks.h"
-#include "vtkQtDebugLeaksModel.h"
-#include "vtkQtDebugLeaksView.h"
+#include "myVtkQtDebugLeaksModel.h"
+#include "myVtkQtDebugLeaksView.h"
 #include "vtkSmartPointer.h"
 
 #include <QApplication>
 #include <QStandardItemModel>
 #include <QTableView>
+#include <QSplitter>
+#include <QList>
 
 #define fail(msg)                                                                                  \
   std::cout << msg << std::endl;                                                                   \
@@ -39,8 +41,8 @@ int main(int argc, char* argv[])
     fail("Expected debug leaks observer to be null at start of test.");
   }
 
-  vtkQtDebugLeaksView view;
-  vtkQtDebugLeaksModel* model = view.model();
+  myVtkQtDebugLeaksView view;
+  myVtkQtDebugLeaksModel* model = view.model();
 
   if (!vtkDebugLeaks::GetDebugLeaksObserver())
   {
@@ -152,7 +154,13 @@ int main(int argc, char* argv[])
   //newReference = nullptr;
   //cone = nullptr;
   QApplication::processEvents();
-  view.setFilterEnabled(true);
+  view.setFilterEnabled(false);
+
+  QSplitter* pSplitter = view.findChild<QSplitter*>();
+  if (pSplitter) {
+      pSplitter->setSizes(QList<int>{ 1,1 });
+  }
+
 
 //   if (classTable->model()->rowCount() != 0)
 //   {

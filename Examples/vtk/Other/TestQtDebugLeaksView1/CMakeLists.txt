@@ -11,8 +11,17 @@ if (NOT VTK_FOUND)
   return()
 endif()
 
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
 set( ${LOCAL_PROJECT_NAME}_SRCS
 	TestQtDebugLeaksView.cxx
+	myVtkQtDebugLeaksModel.h
+	myVtkQtDebugLeaksModel.cxx
+	myVtkQtDebugLeaksView.h
+	myVtkQtDebugLeaksView.cxx
 )
 
 message (STATUS "VTK_VERSION: ${VTK_VERSION}")
