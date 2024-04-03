@@ -1,7 +1,7 @@
 myproject(MultipleMonitors0)
 
-set (QT_LIBRARIES Qt5::Core Qt5::Network Qt5::Sql Qt5::Widgets Qt5::Gui Qt5::WinMain Qt5::Xml Qt5::PrintSupport)
-set (QT_MODULES Qt5::Core Qt5::Network Qt5::Sql Qt5::Widgets Qt5::Gui Qt5::WinMain Qt5::Xml Qt5::PrintSupport)
+set (QT_LIBRARIES Qt5::Core Qt5::Network Qt5::Sql Qt5::Widgets Qt5::Gui Qt5::WinMain Qt5::Xml Qt5::PrintSupport Qt5::GuiPrivate)
+set (QT_MODULES Qt5::Core Qt5::Network Qt5::Sql Qt5::Widgets Qt5::Gui Qt5::WinMain Qt5::Xml Qt5::PrintSupport Qt5::GuiPrivate)
 set (QT_PLATFORM_MODULES Qt5::QWindowsIntegrationPlugin)
 find_qt5_packages()
 
@@ -55,7 +55,7 @@ target_include_directories(${LOCAL_PROJECT_NAME} PRIVATE ${LOCAL_PROJECT_SOURCE_
 	${LOCAL_PROJECT_BINARY_DIR}
 	)
   
-TARGET_LINK_LIBRARIES( ${LOCAL_PROJECT_NAME} ${QT_LIBRARIES} ${UPMC_EXTERNAL_LIBS} )
+TARGET_LINK_LIBRARIES( ${LOCAL_PROJECT_NAME} ${QT_LIBRARIES} Qt5::GuiPrivate ${UPMC_EXTERNAL_LIBS} )
 
 set_target_properties(${LOCAL_PROJECT_NAME} PROPERTIES FOLDER Qt/GUI)
 

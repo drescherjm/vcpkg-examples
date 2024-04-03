@@ -16,7 +16,7 @@ class smSystemDisplayManager;
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-struct smSystemDisplayInfo
+struct smSystemDisplayData
 {
 	QString m_strDeviceName;
 	QString m_strDeviceString;
@@ -52,7 +52,7 @@ public:
 	QString		getMonitorIDs() const;
 
 public:
-	void	setInfo(const smSystemDisplayInfo& info);
+	void	setInfo(const smSystemDisplayData& info);
 
 public slots:
 	void		refresh();

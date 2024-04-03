@@ -63,7 +63,14 @@ int main(int argc, char *argv[])
 #endif // QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #endif
 
+	
+	qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", QByteArray("1"));
+
+	
 	QApplication app(argc, argv);
+
+
+	//app.setAttribute(Qt::AA_EnableHighDpiScaling);
 
 	MonitorWidget mainWindow;
 

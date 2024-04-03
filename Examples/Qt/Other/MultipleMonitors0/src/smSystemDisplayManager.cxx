@@ -10,7 +10,7 @@
 class smSystemDisplayManager::smPrivate
 {
 public:
-	using DisplayMap = std::map<std::string, smSystemDisplayInfo>;
+	using DisplayMap = std::map<std::string, smSystemDisplayData>;
 public:
 	DisplayMap m_Map;
 };
@@ -57,7 +57,7 @@ void smSystemDisplayManager::refresh()
 	DWORD deviceNum = 0;
 	while (EnumDisplayDevices(NULL, deviceNum, &dd, 0))
 	{
-		smSystemDisplayInfo info;
+		smSystemDisplayData info;
 
 		info.m_strDeviceName = QString::fromWCharArray(dd.DeviceName);
 		info.m_strDeviceString = QString::fromWCharArray(dd.DeviceString);
@@ -70,7 +70,7 @@ void smSystemDisplayManager::refresh()
 		DWORD monitorNum = 0;
 		while (EnumDisplayDevices(dd.DeviceName, monitorNum, &ddmon, 0))
 		{
-			smSystemDisplayInfo::smSystemMontorInfo monInfo;
+			smSystemDisplayData::smSystemMontorInfo monInfo;
 			monInfo.m_strMonitorName = QString::fromWCharArray(ddmon.DeviceName);
 			monInfo.m_strMonitorString = QString::fromWCharArray(ddmon.DeviceString);
 			monInfo.m_nMonitorState = ddmon.StateFlags;

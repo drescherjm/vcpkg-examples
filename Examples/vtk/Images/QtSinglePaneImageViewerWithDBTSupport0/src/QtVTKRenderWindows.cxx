@@ -40,6 +40,7 @@
 #include <QTimer>
 #include <boost/lexical_cast.hpp>
 #include <vtkCamera.h>
+#include <vtkImageActor.h>
 
 using boost::lexical_cast;
 using boost::bad_lexical_cast;
@@ -146,6 +147,8 @@ void QtVTKRenderWindows::initializeDisplay(std::string strFilename,int nCineDela
 	riw = vtkSmartPointer< VTKViewWidget >::New();
 	vtkRenderWindow* renderWindow = vtkGenericOpenGLRenderWindow::New();
 
+	
+
 	auto renderSize = renderWindow->GetSize();
 
 	renderSize[0] = std::max(szQtWindow.width(), renderSize[0]);
@@ -154,6 +157,8 @@ void QtVTKRenderWindows::initializeDisplay(std::string strFilename,int nCineDela
 	renderWindow->SetSize(renderSize);
 
 	riw->SetSliceOrientation(vtkResliceImageViewer::SLICE_ORIENTATION_XY);
+
+	//riw->GetImageActor()->SetUserMatrix(reader->GetPatientMatrix()); 
 
 	vtkRenderer* pren = vtkRenderer::New();
 	renderWindow->AddRenderer(pren);

@@ -9,7 +9,7 @@ public:
 	std::shared_ptr<smSystemDisplayManager> m_pDisplayManager;
 	QString									m_strDisplayName;
 	QString									m_strExtendedKey;
-	smSystemDisplayInfo						m_info;
+	smSystemDisplayData						m_info;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ QString smSystemDisplay::getMonitorIDs() const
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void smSystemDisplay::setInfo(const smSystemDisplayInfo& info)
+void smSystemDisplay::setInfo(const smSystemDisplayData& info)
 {
 	m_pPrivate->m_info = info;
 }

@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <iostream>
 
+#include <qpa\qplatformscreen.h>
+
 #define UNICODE
 #include <windows.h>
 #include "smSystemDisplayManager.h"
@@ -22,7 +24,7 @@ MonitorWidget::MonitorWidget(QWidget* parent /*= 0*/) : QWidget(parent), m_pDisp
 	auto pTimer = new QTimer(this);
 	//pTimer->setInterval(1000);
 	connect(pTimer, SIGNAL(timeout()), this, SLOT(refreshDisplay()));
-	pTimer->start(10000);
+	pTimer->start(1000);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -88,15 +90,6 @@ void MonitorWidget::refreshDisplay()
 {
 	auto pScreen = screen();	
 	if (pScreen) {
-// 		if (pScreen->serialNumber().isEmpty()) {
-// 			if (!pScreen->setProperty("serialNumber", QString("Test"))) {
-// 				std::cerr << "Could not modify the serialNumber" << std::endl;
-// 			}
-// 		}
-// 
-// 		lineEditScreen->setText(pScreen->name());
-// 		lineEditSerialNumber->setText(pScreen->serialNumber());
-
 
 		smSystemDisplay display;
 
@@ -106,6 +99,13 @@ void MonitorWidget::refreshDisplay()
 		lineEditName->setText(display.getName());
 		lineEditID->setText(display.getMonitorIDs());
 		lineEditKey->setText(display.getMonitorKeys());
+
+
+		QPlatformScreen* pHandle = pScreen->handle();
+		if (pHandle) {
+			QString serial = pHandle->serialNumber();
+			qDebug() << serial;
+		}
 
 		enumerateQtScreens();
 	}
